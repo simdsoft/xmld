@@ -32,6 +32,7 @@
 
 using namespace xmldrv;
 
+#if !_USE_IN_COCOS2DX
 // xmldrv file read & write support
 namespace {
     long get_file_size(const char *path)
@@ -93,6 +94,7 @@ namespace {
         return write_file_data(filename, content.c_str(), content.size());
     }
 };
+#endif
 
 // TDkey
 // static const char* xmldrvkey = "wvZ5MsscMVV4ZCgRQFqxIiQZdRnEl,pQ";
@@ -588,7 +590,7 @@ bool document::open(const char* name, const char* mode, int namelen)
     else if (0 == _stricmp(mode, "#buffer")) {
         return openb(name, namelen);
     }
-    else if (0 == _stricmp(mode, "#disk"))
+    else if (0 == _stricmp(mode, "#disk") || 0 == _stricmp(mode, "#file"))
     {
         return openf(name);
     }

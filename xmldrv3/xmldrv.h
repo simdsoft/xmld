@@ -62,17 +62,11 @@
 #define _XML4WRAPPER_VERSION "3.9.3"
 #endif
 
-#define _XMLDRV_STATIC 0
+#undef _XMLDRV_STATIC
+#define _XMLDRV_STATIC 1
 
-#if defined(_XMLDRV_STATIC) && _XMLDRV_STATIC
-#define XMLDRV_DLL
-#else
-#if defined(_USRDLL)
-#define XMLDRV_DLL     __declspec(dllexport)
-#else         /* use a DLL library */
-#define XMLDRV_DLL     __declspec(dllimport)
-#endif
-#endif
+#undef _USE_IN_COCOS2DX
+#define _USE_IN_COCOS2DX 0
 
 /// default: use rapidxml
 #undef _USING_LIBXML2
@@ -83,8 +77,15 @@
 #undef _USING_VTDXML
 #define _USING_RAPIDXML 1
 
-#undef _USE_IN_COCOS2DX
-#define _USE_IN_COCOS2DX 0
+#if defined(_XMLDRV_STATIC) && _XMLDRV_STATIC
+#define XMLDRV_DLL
+#else
+#if defined(_USRDLL)
+#define XMLDRV_DLL     __declspec(dllexport)
+#else         /* use a DLL library */
+#define XMLDRV_DLL     __declspec(dllimport)
+#endif
+#endif
 
 #if _USE_IN_COCOS2DX
 #include <cocos2d.h>
