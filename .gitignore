@@ -1,0 +1,6 @@
+Debug/*
+Release/*
+xmldrv3/Debug/*
+xmldrv3/Release/*
+xmldrv3_test/Debug/*
+xmldrv3_test/Release/*
