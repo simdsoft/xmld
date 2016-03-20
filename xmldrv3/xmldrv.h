@@ -201,20 +201,20 @@ namespace xmldrv {
         template<typename _Ty>
         void            set_attribute_value(const char* name, const _Ty& value);
 
-        template<typename _Operation>
-        void            cforeach(const _Operation& op) const;
+        template<typename _Handler>
+        void            cforeach(const _Handler&) const;
 
-        template<typename _Operation> // op must return bool
-        void            cforeach_breakif(const _Operation& op) const;
+        template<typename _Handler> // op must return bool
+        void            cforeach_breakif(const _Handler&) const;
 
-        template<typename _Operation>
-        void            cforeach(const char* name, const _Operation& op) const;
+        template<typename _Handler>
+        void            cforeach(const char* name, const _Handler&) const;
 
-        template<typename _Operation> // op must return bool
-        void            cforeach_breakif(const char* name, const _Operation& handler) const;
+        template<typename _Handler> // op must return bool
+        void            cforeach_breakif(const char* name, const _Handler&) const;
 
-        template<typename _Operation> // foreach attribute, op protype: (const unmanaged_string& name, const unmanaged_string& value)
-        void            aforeach(const _Operation& op);
+        template<typename _Handler> // foreach attribute, op protype: (const unmanaged_string& name, const unmanaged_string& value)
+        void            pforeach(const _Handler& );
 
         void*           first_attribute();
 
@@ -365,7 +365,7 @@ namespace xmldrv {
         **          please see example in the file: xml4w_testapi.cpp
         */
         template<typename _Handler>
-        void                xforeach(const char* xpath, const _Handler& op) const;
+        void                xforeach(const char* xpath, const _Handler&) const;
 
         /*
         ** @brief: From DOM to String
