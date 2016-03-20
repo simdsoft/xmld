@@ -59,7 +59,7 @@
 
 /// version
 #ifndef _XML4WRAPPER_VERSION
-#define _XML4WRAPPER_VERSION "3.9.3"
+#define _XML4WRAPPER_VERSION "3.9.6"
 #endif
 
 #undef _XMLDRV_STATIC
@@ -214,7 +214,7 @@ namespace xmldrv {
         void            cforeach_breakif(const char* name, const _Handler&) const;
 
         template<typename _Handler> // foreach attribute, op protype: (const unmanaged_string& name, const unmanaged_string& value)
-        void            pforeach(const _Handler& );
+        void            pforeach(const _Handler&);
 
         void*           first_attribute();
 
