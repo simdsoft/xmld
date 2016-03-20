@@ -17,25 +17,25 @@
 #if defined(_XML4WRAPPER_H_)
 namespace xmldrv {
 
-template<typename _Ty>
+template<typename _Ty> inline
 _Ty element::get_value(const _Ty& default_value) const
 {
     return nsc::to_numeric<_Ty>(this->get_value(nsc::to_string(default_value)));
 }
 
-template<typename _Ty>
+template<typename _Ty> inline
 _Ty element::get_attribute_value(const char* name, const _Ty& default_value) const
 {
     return nsc::to_numeric<_Ty>(this->get_attribute_value(name, nsc::to_string(default_value)));
 }
 
-template<typename _Ty>
+template<typename _Ty> inline
 void element::set_value(const _Ty& value)
 {
     this->set_value(nsc::to_string(value));
 }
 
-template<typename _Ty>
+template<typename _Ty> inline
 void element::set_attribute_value(const char* name, const _Ty& value)
 {
     if(_Mynode != nullptr) {
@@ -43,8 +43,8 @@ void element::set_attribute_value(const char* name, const _Ty& value)
     }
 }
 
-template<typename _Handler>
-void element::cforeach(_Handler handler) const
+template<typename _Handler> inline
+void element::cforeach(const _Handler& handler) const
 {
     auto ptr = *this;
     __xml4wts_algo(ptr, 
@@ -54,8 +54,8 @@ void element::cforeach(_Handler handler) const
         );
 }
 
-template<typename _Operation>
-void element::cforeach_breakif(_Operation handler) const
+template<typename _Handler> inline
+void element::cforeach_breakif(const _Handler& handler) const
 {           
     auto ptr = *this;
     __xml4wts_algo_cond(ptr,
@@ -66,8 +66,8 @@ void element::cforeach_breakif(_Operation handler) const
         );
 }
 
-template<typename _Handler>
-void element::cforeach(const char* name, _Handler handler) const
+template<typename _Handler> inline
+void element::cforeach(const char* name, const _Handler& handler) const
 {
     auto ptr = *this;
     __xml4wts_algo_cond(ptr, 
@@ -78,8 +78,30 @@ void element::cforeach(const char* name, _Handler handler) const
         );
 }
 
-template<typename _Handler>
-void document::xforeach(const char* xpath, _Handler handler) const
+template<typename _Handler> inline
+void element::cforeach_breakif(const char* name, const _Handler& handler) const
+{
+    auto ptr = *this;
+    __xml4wts_algo_cond(ptr,
+        ptr.get_child(),
+        ptr.get_next_sibling(),
+        name == ((element)ptr).get_name() && handler(ptr),
+        break
+    );
+}
+
+template<typename _Handler> inline
+void   element::aforeach(const _Handler& handler)
+{
+    auto ptr = first_attribute();
+    while (ptr != nullptr) {
+        handler(name_of_attr(ptr), value_of_attr(ptr));
+        ptr = next_attribute(ptr);
+    }
+}
+
+template<typename _Handler> inline
+void document::xforeach(const char* xpath, const _Handler& handler) const
 {
     auto result = this->xpath_eval(xpath);
 

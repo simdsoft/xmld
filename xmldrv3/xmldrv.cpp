@@ -334,6 +334,7 @@ std::string element::get_attribute_value(const char* name, const char* default_v
     if (is_valid())
     {
         auto attr = detail(_Mynode)->first_attribute(name);
+        
         if (attr != nullptr) {
             return std::string(attr->value(), attr->value_size());
         }
@@ -343,6 +344,44 @@ std::string element::get_attribute_value(const char* name, const char* default_v
         << default_value << "] insteaded!\n";
 
     return default_value;
+}
+
+void*  element::first_attribute()
+{
+    if (is_valid())
+    {
+        auto attr = detail(_Mynode)->first_attribute();
+
+        return attr;
+    }
+}
+
+void*  element::next_attribute(void* attrv)
+{
+    if (attrv != nullptr) {
+        return ((rapidxml::xml_attribute<char>*)attrv)->next_attribute();
+    }
+    return nullptr;
+}
+
+unmanaged_string  element::name_of_attr(void* attrv)
+{
+    unmanaged_string name;
+    if (attrv != nullptr) {
+        auto attr = ((rapidxml::xml_attribute<char>*)attrv);
+        name.assign(attr->name(), attr->name_size());
+    }
+    return std::move(name);
+}
+
+unmanaged_string element::value_of_attr(void* attrv)
+{
+    unmanaged_string value;
+    if (attrv != nullptr) {
+        auto attr = ((rapidxml::xml_attribute<char>*)attrv);
+        value.assign(attr->value(), attr->value_size());
+    }
+    return std::move(value);
 }
 
 void element::set_value(const char* value)
@@ -514,6 +553,17 @@ element element::add_child(const char* name, const char* value /* = nullptr */) 
     return nullptr;
 }
 
+element element::add_child(const std::string& name, const char* value /* = nullptr */) const
+{
+    if (is_valid()) {
+        auto palloc = detail(_Mynode)->get_allocator();
+        auto newnode = palloc->allocate_node(rapidxml::node_type::node_element, palloc->allocate_string(name.c_str(), name.size()), value != nullptr ? palloc->allocate_string(value) : nullptr);
+        detail(_Mynode)->append_node(newnode);
+        return newnode;
+    }
+    return nullptr;
+}
+
 void element::remove_children(void)
 {
     if (is_valid()) {
@@ -609,8 +659,11 @@ bool document::openf(const char* filename)
 #if _USE_IN_COCOS2DX
             impl_->buf = cocos2d::FileUtils::getInstance()->getFileData(impl_->filename);
 
-            if (impl_->buf.empty())
+            if (impl_->buf.empty()) {
+                delete impl_;
+                impl_ = nullptr;
                 return false;
+            }
 
             if (security_used)
             {
@@ -625,6 +678,7 @@ bool document::openf(const char* filename)
             }
             else {
                 delete impl_;
+                impl_ = nullptr;
             }
         }
     }
@@ -666,6 +720,7 @@ bool document::openb(const char* xmlstring, int length)
             else {
                 //cocos2d::showMessageBox("open file failed!", "xmldrv::document::open");
                 delete impl_;
+                impl_ = nullptr;
             }
         }
     }
@@ -692,6 +747,9 @@ void document::save(const char* filename, bool formatted) const
 #else
         write_file_data(filename, stream);
 #endif
+        if (this->impl_->filename.empty()) {
+            this->impl_->filename = filename;
+        }
     }
 }
 

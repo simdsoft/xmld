@@ -68,15 +68,6 @@
 #undef _USE_IN_COCOS2DX
 #define _USE_IN_COCOS2DX 0
 
-/// default: use rapidxml
-#undef _USING_LIBXML2
-#undef _USING_XERCESC
-#undef _USING_TINYXML2
-#undef _USING_RAPIDXML
-#undef _USING_PUGIXML
-#undef _USING_VTDXML
-#define _USING_RAPIDXML 1
-
 #if defined(_XMLDRV_STATIC) && _XMLDRV_STATIC
 #define XMLDRV_DLL
 #else
@@ -86,6 +77,15 @@
 #define XMLDRV_DLL     __declspec(dllimport)
 #endif
 #endif
+
+/// default: use rapidxml
+#undef _USING_LIBXML2
+#undef _USING_XERCESC
+#undef _USING_TINYXML2
+#undef _USING_RAPIDXML
+#undef _USING_PUGIXML
+#undef _USING_VTDXML
+#define _USING_RAPIDXML 1
 
 #if _USE_IN_COCOS2DX
 #include <cocos2d.h>
@@ -103,6 +103,7 @@
 #include <functional>
 
 #include "nsconv.h"
+#include "unreal_string.h"
 #include "container_helper.h"
 
 /// basic types
@@ -176,6 +177,7 @@ namespace xmldrv {
 
         element         add_child(const element& element) const;
         element         add_child(const char* name, const char* value = nullptr) const;
+        element         add_child(const std::string& name, const char* value = nullptr) const;
 
         void            remove_child(int index = 0);
         void            remove_child(const char* name, int index = 0);
@@ -200,13 +202,25 @@ namespace xmldrv {
         void            set_attribute_value(const char* name, const _Ty& value);
 
         template<typename _Operation>
-        void            cforeach(_Operation op) const;
+        void            cforeach(const _Operation& op) const;
 
         template<typename _Operation> // op must return bool
-        void            cforeach_breakif(_Operation op) const;
+        void            cforeach_breakif(const _Operation& op) const;
 
         template<typename _Operation>
-        void            cforeach(const char* name, _Operation op) const;
+        void            cforeach(const char* name, const _Operation& op) const;
+
+        template<typename _Operation> // op must return bool
+        void            cforeach_breakif(const char* name, const _Operation& handler) const;
+
+        template<typename _Operation> // foreach attribute, op protype: (const unmanaged_string& name, const unmanaged_string& value)
+        void            aforeach(const _Operation& op);
+
+        void*           first_attribute();
+
+        static void*     next_attribute(void* attr);
+        static unmanaged_string name_of_attr(void* attr);
+        static unmanaged_string value_of_attr(void* attr);
 
         bool            is_valid(void) const { return _Mynode != nullptr; }
         operator xml4wNodePtr(void) { return _Mynode; }
@@ -350,8 +364,8 @@ namespace xmldrv {
         ** @comment(usage):
         **          please see example in the file: xml4w_testapi.cpp
         */
-        template<typename _Operation>
-        void                xforeach(const char* xpath, _Operation op) const;
+        template<typename _Handler>
+        void                xforeach(const char* xpath, const _Handler& op) const;
 
         /*
         ** @brief: From DOM to String
