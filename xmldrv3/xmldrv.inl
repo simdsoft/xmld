@@ -91,7 +91,7 @@ void element::cforeach_breakif(const char* name, const _Handler& handler) const
 }
 
 template<typename _Handler> inline
-void   element::aforeach(const _Handler& handler)
+void   element::pforeach(const _Handler& handler)
 {
     auto ptr = first_attribute();
     while (ptr != nullptr) {
