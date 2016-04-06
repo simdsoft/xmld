@@ -354,6 +354,7 @@ void*  element::first_attribute()
 
         return attr;
     }
+    return nullptr;
 }
 
 void*  element::next_attribute(void* attrv)
