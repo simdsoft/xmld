@@ -27,7 +27,6 @@
 
 #include "object_pool.h"
 #include "xxfsutility.h"
-#include "crypto_wrapper.h"
 #endif
 
 using namespace xmldrv;
@@ -96,28 +95,6 @@ namespace {
 };
 #endif
 
-// TDkey
-// static const char* xmldrvkey = "wvZ5MsscMVV4ZCgRQFqxIiQZdRnEl,pQ";
-
-// Editor key
-static char xmldrvkey[] = "gsvEjsNq2BhmwXMLR,8eGHdBAzWW8kN,";
-static bool security_used = false;
-
-void xmldrv::set_security(bool security)
-{
-    security_used = security;
-}
-
-void xmldrv::set_encrypt_key(const char* key)
-{
-    strncpy(xmldrvkey, key, 32);
-}
-
-void xmldrv::set_encrypt_key(const void* key, size_t size)
-{
-    memcpy(xmldrvkey, key, (std::min)(size, (size_t)32));
-}
-
 /*************************common impl******************/
 #ifndef _IMPL_COMM
 #define _IMPL_COMM 1
@@ -180,12 +157,12 @@ void element::remove_child(const char* name, int index)
     this->get_child(name, index).remove_self();
 }
 
-std::string element::get_value(const std::string& default_value) const
+vstring element::get_value(const std::string& default_value) const
 {
     return this->get_value(default_value.c_str());
 }
 
-std::string element::get_attribute_value(const char* name, const std::string& default_value) const
+vstring element::get_attribute_value(const char* name, const std::string& default_value) const
 {
     return this->get_attribute_value(name, default_value.c_str());
 }
@@ -309,18 +286,18 @@ element element::get_next_sibling(void) const
     return ptr;
 }
 
-std::string element::get_name(void) const
+vstring element::get_name(void) const
 {
     if (is_valid()) {
-        return std::string(detail(_Mynode)->name(), detail(_Mynode)->name_size());
+        return vstring(detail(_Mynode)->name(), detail(_Mynode)->name_size());
     }
     return "null";
 }
 
-std::string element::get_value(const char* default_value) const
+vstring element::get_value(const char* default_value) const
 {
     if (is_valid()) {
-        return std::string(detail(_Mynode)->value(), detail(_Mynode)->value_size());
+        return vstring(detail(_Mynode)->value(), detail(_Mynode)->value_size());
     }
 
     std::cerr << "xml4w::element::get_value failed, detail(element:" << this->get_name() << "), use the default value["
@@ -329,14 +306,14 @@ std::string element::get_value(const char* default_value) const
     return default_value;
 }
 
-std::string element::get_attribute_value(const char* name, const char* default_value) const
+vstring element::get_attribute_value(const char* name, const char* default_value) const
 {
     if (is_valid())
     {
         auto attr = detail(_Mynode)->first_attribute(name);
         
         if (attr != nullptr) {
-            return std::string(attr->value(), attr->value_size());
+            return vstring(attr->value(), attr->value_size());
         }
     }
 
@@ -346,7 +323,7 @@ std::string element::get_attribute_value(const char* name, const char* default_v
     return default_value;
 }
 
-void*  element::first_attribute()
+void*  element::first_attribute() const
 {
     if (is_valid())
     {
@@ -354,6 +331,7 @@ void*  element::first_attribute()
 
         return attr;
     }
+    return nullptr;
 }
 
 void*  element::next_attribute(void* attrv)
@@ -364,21 +342,21 @@ void*  element::next_attribute(void* attrv)
     return nullptr;
 }
 
-unmanaged_string  element::name_of_attr(void* attrv)
+vstring  element::name_of_attr(void* attrv)
 {
-    unmanaged_string name;
+    vstring name;
     if (attrv != nullptr) {
-        auto attr = ((rapidxml::xml_attribute<char>*)attrv);
+        auto attr = ((const rapidxml::xml_attribute<char>*)attrv);
         name.assign(attr->name(), attr->name_size());
     }
     return std::move(name);
 }
 
-unmanaged_string element::value_of_attr(void* attrv)
+vstring element::value_of_attr(void* attrv)
 {
-    unmanaged_string value;
+    vstring value;
     if (attrv != nullptr) {
-        auto attr = ((rapidxml::xml_attribute<char>*)attrv);
+        auto attr = ((const rapidxml::xml_attribute<char>*)attrv);
         value.assign(attr->value(), attr->value_size());
     }
     return std::move(value);
@@ -614,7 +592,7 @@ std::string element::to_string(bool formatted) const
 
 /*----------------------------- friendly division line ----------------------------------------*/
 namespace rapidxml {
-    const int parse_normal = (rapidxml::parse_no_string_terminators | rapidxml::parse_no_data_nodes);
+    const int parse_normal = (/*rapidxml::parse_no_string_terminators | */rapidxml::parse_no_data_nodes);
 };
 
 struct xml4wDoc
@@ -625,7 +603,7 @@ struct xml4wDoc
 };
 
 namespace xmldrv {
-    const std::string& internalGetDocPath(const document* doc)
+    std::string& internalGetDocPath(const document* doc)
     {
         xml4wDoc* impl = (xml4wDoc*)(*super_cast::force_cast<uintptr_t*>(doc));
         return impl->filename;
@@ -663,12 +641,6 @@ bool document::openf(const char* filename)
                 delete impl_;
                 impl_ = nullptr;
                 return false;
-            }
-
-            if (security_used)
-            {
-                crypto::aes::overlapped::decrypt(impl_->buf, xmldrvkey);
-                impl_->buf = std::move(crypto::zlib::inflate(impl_->buf));
             }
 #else
             impl_->buf = read_file_data(impl_->filename.c_str());
@@ -727,6 +699,30 @@ bool document::openb(const char* xmlstring, int length)
     return is_open();
 }
 
+bool document::openb(std::string&& xmlstring)
+{
+    if (!is_open()) {
+        impl_ = new(std::nothrow) xml4wDoc();
+        if (impl_ != nullptr)
+        {
+            impl_->buf = std::move(xmlstring);
+
+            if (!impl_->buf.empty()) {
+
+                impl_->doc.parse<rapidxml::parse_normal>((char*)&impl_->buf.front(), (int)impl_->buf.size());
+
+                impl_->filename = "xmldrv.memory.xml";
+            }
+            else {
+                //cocos2d::showMessageBox("open file failed!", "xmldrv::document::open");
+                delete impl_;
+                impl_ = nullptr;
+            }
+        }
+    }
+    return is_open();
+}
+
 void document::save(bool formatted) const
 {
     if (is_open())
@@ -736,13 +732,9 @@ void document::save(bool formatted) const
 void document::save(const char* filename, bool formatted) const
 {
     if (is_open()) {
-        std::string stream = this->to_string(formatted && !security_used);
+        std::string stream = this->to_string(formatted);
 
 #if _USE_IN_COCOS2DX
-        if (security_used) {
-            stream = std::move(crypto::zlib::deflate(stream));
-            crypto::aes::overlapped::encrypt(stream, xmldrvkey);
-        }
         fsutil::write_file_data(filename, stream.data(), stream.size());
 #else
         write_file_data(filename, stream);

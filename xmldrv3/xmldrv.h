@@ -59,7 +59,7 @@
 
 /// version
 #ifndef _XML4WRAPPER_VERSION
-#define _XML4WRAPPER_VERSION "3.9.6"
+#define _XML4WRAPPER_VERSION "3.9.9"
 #endif
 
 #undef _XMLDRV_STATIC
@@ -105,6 +105,12 @@
 #include "nsconv.h"
 #include "unreal_string.h"
 #include "container_helper.h"
+
+#if defined(_USING_RAPIDXML)
+typedef purelib::unmanaged_string vstring;
+#else
+typedef std::string vstring;
+#endif
 
 /// basic types
 typedef void xml4wNode;
@@ -154,11 +160,11 @@ namespace xmldrv {
 
         element         clone(void) const;
 
-        std::string     get_name(void) const;
-        std::string     get_value(const char* default_value = "") const;
-        std::string     get_value(const std::string& default_value = "") const;
-        std::string     get_attribute_value(const char* name, const char* = "") const;
-        std::string     get_attribute_value(const char* name, const std::string& default_value = "") const;
+        vstring         get_name(void) const;
+        vstring         get_value(const char* default_value = "") const;
+        vstring         get_value(const std::string& default_value = "") const;
+        vstring         get_attribute_value(const char* name, const char* = "") const;
+        vstring         get_attribute_value(const char* name, const std::string& default_value = "") const;
         element         get_parent(void) const;
         element         get_prev_sibling(void) const;
         element         get_next_sibling(void) const;
@@ -214,13 +220,13 @@ namespace xmldrv {
         void            cforeach_breakif(const char* name, const _Handler&) const;
 
         template<typename _Handler> // foreach attribute, op protype: (const unmanaged_string& name, const unmanaged_string& value)
-        void            pforeach(const _Handler&);
+        void            pforeach(const _Handler&) const;
 
-        void*           first_attribute();
+        void*           first_attribute() const;
 
         static void*     next_attribute(void* attr);
-        static unmanaged_string name_of_attr(void* attr);
-        static unmanaged_string value_of_attr(void* attr);
+        static vstring   name_of_attr(void* attr);
+        static vstring   value_of_attr(void* attr);
 
         bool            is_valid(void) const { return _Mynode != nullptr; }
         operator xml4wNodePtr(void) { return _Mynode; }
@@ -301,6 +307,8 @@ namespace xmldrv {
         ** @returns: No Explain...
         */ 
         bool                openb(const char* xmlstring, int length);
+
+        bool                openb(std::string&& xmlstring);
 
 
         /* @brief  : Save document to disk with filename when it was opened
@@ -387,18 +395,6 @@ namespace xmldrv {
     private:
         xml4wDocPtr impl_;
     }; /* CLASS document */
-
-    /*
-    ** set xmldrv use AES security mode.
-    */
-    void set_security(bool security);
-
-    /*
-    ** set xmldrv use AES key mode 0~32bytes.
-    */
-    void set_encrypt_key(const char* key);
-    void set_encrypt_key(const void* key, size_t size);
-
 };
 /* namespace: xmldrv alias */
 namespace xmld = xmldrv;

@@ -5,6 +5,7 @@
 #include <ostream>
 #include <string>
 #include <memory>
+#include <vector>
 #include "xxfree.h"
 
 namespace purelib {
@@ -233,6 +234,13 @@ namespace purelib {
         {
             _Tidy();
             this->assign(_Ptr);
+        }
+
+        template<size_t _Size>
+        unreal_string(const _Elem(&_Ptr)[_Size])
+        {
+            _Tidy();
+            this->assign(_Ptr, _Size);
         }
 
         unreal_string(const _Elem* _Ptr, size_t _Length)
