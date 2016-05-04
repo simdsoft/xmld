@@ -16,7 +16,7 @@
 
 #include <wchar.h>
 
-//#include "unreal_string.h"
+#include "unreal_string.h"
 
 namespace purelib {
 
@@ -95,7 +95,7 @@ std::wstring& to_wstring(const _Nty& numeral, std::wstring& text, ios_flag radix
 
 // convert string[std::string/std::wstring] to numeric[char/short/int/long/long long/float/double].
 template<typename _Nty, typename _Elem> inline
-_Nty to_numeric(const std::basic_string<_Elem>& text, ios_flag radix = std::dec)
+_Nty to_numeric(const unreal_string<_Elem, pseudo_cleaner<_Elem> >& text, ios_flag radix = std::dec)
 { 
     _Nty numeral = _Nty();
     std::basic_stringstream<_Elem> swaper;
@@ -107,7 +107,7 @@ _Nty to_numeric(const std::basic_string<_Elem>& text, ios_flag radix = std::dec)
 }
 
 template<typename _Nty, typename _Elem> inline
-_Nty& to_numeric(const std::basic_string<_Elem>& text, _Nty& numeral, ios_flag radix = std::dec)
+_Nty& to_numeric(const unreal_string<_Elem, pseudo_cleaner<_Elem> >& text, _Nty& numeral, ios_flag radix = std::dec)
 {
     std::basic_stringstream<_Elem> swaper;
 	swaper.precision(16);
@@ -413,6 +413,18 @@ inline
 std::string& replace(std::string&& string, const std::string& replaced_key, const std::string& replacing_key) 
 {
     return replace(string, replaced_key, replacing_key);
+}
+
+inline
+std::string::size_type replace_once(std::string& string, const std::string& replaced_key, const std::string& replacing_key) 
+{
+    std::string::size_type pos = 0;
+    if( (pos = string.find(replaced_key, pos)) != std::string::npos )
+    {
+        (void)string.replace(pos, replaced_key.length(), replacing_key);
+        return pos;
+    }
+    return std::string::npos;
 }
 
 inline
@@ -751,7 +763,7 @@ inline void create_guid(LPTSTR outs)
     _GUID guid;
     CoCreateGuid(&guid);
 
-    wprintf_s(outs, TEXT("%08X-%04X-%04X-%04X-%04X%08X"),
+    wsprintf(outs, TEXT("%08X-%04X-%04X-%04X-%04X%08X"),
         guid.Data1,
         guid.Data2,
         guid.Data3,
@@ -766,7 +778,7 @@ inline void create_guid_v2(LPTSTR outs)
     _GUID guid;
     CoCreateGuid(&guid);
 
-    wprintf_s(outs, TEXT("%08X%04X%04X%016I64X"), 
+    wsprintf(outs, TEXT("%08X%04X%04X%016I64X"),
         guid.Data1,
         guid.Data2,
         guid.Data3,
@@ -844,7 +856,7 @@ std::basic_string<_Elem> create_guid_v3(void)
 
 #endif /* _NSCONV_ */
 /*
-* Copyright (c) 2012-2014 by xseekerj  ALL RIGHTS RESERVED.
+* Copyright (c) 2012-2016 by halx99  ALL RIGHTS RESERVED.
 * Consult your license regarding permissions and restrictions.
 **/
 
