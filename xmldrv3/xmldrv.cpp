@@ -19,6 +19,7 @@
 #include <time.h>
 #include <fstream>
 #include <iostream>
+#include <algorithm>
 #include "super_cast.h"
 #include "xmldrv.h"
 
@@ -505,7 +506,7 @@ cocos2d::Size    element::get_attribute_value(const char* name, const cocos2d::S
 #endif
 
 void element::set_attribute_value(const char* name, const char* value)
-{
+{ // pitfall: string-literal
     if (is_valid()) {
         auto where = detail(_Mynode)->first_attribute(name);
         auto palloc = detail(_Mynode)->get_allocator();
@@ -668,6 +669,28 @@ bool document::openn(const char* rootname, const char* filename)
         }
     }
     return is_open();
+}
+
+bool document::openn()
+{
+    if (!is_open()) {
+        impl_ = new(std::nothrow) xml4wDoc();
+    }
+    return is_open();
+}
+
+element document::set_root(element newroot)
+{
+    if (is_open()) {
+        impl_ = new(std::nothrow) xml4wDoc();
+        if (impl_ != nullptr)
+        {
+            impl_->doc.remove_all_nodes();
+            impl_->doc.append_node(detail(newroot));
+        }
+    }
+
+    return this->root();
 }
 
 bool document::openb(const char* xmlstring, int length)

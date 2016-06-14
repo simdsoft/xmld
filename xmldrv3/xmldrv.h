@@ -222,6 +222,9 @@ namespace xmldrv {
         template<typename _Handler> // foreach attribute, op protype: (const unmanaged_string& name, const unmanaged_string& value)
         void            pforeach(const _Handler&) const;
 
+        template<typename _Handler> // foreach attribute, op protype: (const unmanaged_string& name, const unmanaged_string& value)
+        void            pforeach_breakif(const _Handler&) const;
+
         void*           first_attribute() const;
 
         static void*     next_attribute(void* attr);
@@ -296,6 +299,8 @@ namespace xmldrv {
         ** @returns: No Explain...
         */
         bool                openn(const char* rootname, const char* filename = "");
+        bool                openn(); // open a empty
+        element             set_root(element root);
 
 
         /* @brief  : Open from xml formated string

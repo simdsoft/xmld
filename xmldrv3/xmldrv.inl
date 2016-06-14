@@ -101,6 +101,17 @@ void   element::pforeach(const _Handler& handler) const
 }
 
 template<typename _Handler> inline
+void   element::pforeach_breakif(const _Handler& handler) const
+{
+    auto ptr = first_attribute();
+    while (ptr != nullptr) {
+        if (handler(name_of_attr(ptr), value_of_attr(ptr)))
+            break;
+        ptr = next_attribute(ptr);
+    }
+}
+
+template<typename _Handler> inline
 void document::xforeach(const char* xpath, const _Handler& handler) const
 {
     auto result = this->xpath_eval(xpath);
