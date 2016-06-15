@@ -150,14 +150,6 @@ namespace xmldrv {
     class element;
     class document;
 
-    template<typename _Ty>
-    struct numeric_wrapper
-    {
-    public:
-        numeric_wrapper(int r) : value(r) {}
-        _Ty value;
-    };
-
     class XMLDRV_DLL element
     {
         friend class document;
@@ -169,10 +161,11 @@ namespace xmldrv {
         element         clone(void) const;
 
         vstring         get_name(void) const;
-        vstring         get_value(const char* default_value = "") const;
-        vstring         get_value(const std::string& default_value = "") const;
-        vstring         get_attribute_value(const char* name, const char* = "") const;
-        vstring         get_attribute_value(const char* name, const std::string& default_value = "") const;
+        
+        vstring         get_value(const vstring& default_value = "") const;
+
+        vstring         get_attribute_value(const vstring& name, const vstring& = "") const;
+
         element         get_parent(void) const;
         element         get_prev_sibling(void) const;
         element         get_next_sibling(void) const;
@@ -181,7 +174,7 @@ namespace xmldrv {
         element         operator[](int index) const;
         element         operator[](const vstring& name) const;
         element         get_child(int index = 0) const;
-        element         get_child(const char* name, int index = 0) const;
+        element         get_child(const vstring& name, int index = 0) const;
         /*void            get_children(std::vector<element>& children) const;
         void            get_children(const char* name, std::vector<element>& children) const;
 */
@@ -192,9 +185,9 @@ namespace xmldrv {
         element         add_child(const vstring& name, const vstring& value = nullptr) const;
 
         void            remove_child(int index = 0);
-        void            remove_child(const char* name, int index = 0);
+        void            remove_child(const vstring& name, int index = 0);
         void            remove_children(void);
-        void            remove_children(const char* name);
+        void            remove_children(const vstring& name);
         void            remove_self(void);
 
         std::string     to_string(bool formatted = false) const;
