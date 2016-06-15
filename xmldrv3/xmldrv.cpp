@@ -114,9 +114,9 @@ element element::operator[](int index) const
     return this->get_child(index);
 }
 
-element element::operator[](const char* name) const
+element element::operator[](const vstring& name) const
 {
-    auto child = this->get_child(name);
+    auto child = this->get_child(name.c_str());
     if (child.is_valid())
     {
         return child;
@@ -168,10 +168,10 @@ vstring element::get_attribute_value(const char* name, const std::string& defaul
     return this->get_attribute_value(name, default_value.c_str());
 }
 
-void element::set_value(const std::string& value)
-{
-    this->set_value(value.c_str());
-}
+//void element::set_value(const std::string& value)
+//{
+//    this->set_value(value.c_str());
+//}
 
 document::document(void)
     : impl_(nullptr)
@@ -203,6 +203,8 @@ bool document::is_open(void) const
 #include "rapidxml/rapidxml_iterators.hpp"
 #include "rapidxml/rapidxml_print.hpp"
 
+#define adapt_vstring(vstr, palloc) vstr.is_literal() ? vstr.c_str() : palloc->allocate_string(vstr.c_str(), vstr.size())
+
 inline rapidxml::xml_node<>* detail(void* raw)
 {
     return (rapidxml::xml_node<>*)raw;
@@ -230,7 +232,7 @@ element element::add_child(const element& e) const
             return cloned;
         }
     }
-    return nullptr;
+    return element(nullptr);
 }
 
 element element::clone(void) const
@@ -239,16 +241,16 @@ element element::clone(void) const
     {
         auto palloc = detail(_Mynode)->get_allocator();
         if (palloc != nullptr)
-            return palloc->clone_node(detail(_Mynode));
+            return element(palloc->clone_node(detail(_Mynode)));
     }
-    return nullptr;
+    return element(nullptr);
 }
 
 element element::get_parent(void) const
 {
     if (is_valid())
-        return detail(_Mynode)->parent();
-    return nullptr;
+        return element(detail(_Mynode)->parent());
+    return element(nullptr);
 }
 
 element element::get_first_child(void) const
@@ -260,7 +262,7 @@ element element::get_first_child(void) const
         is_element(_Mynode),
         break
         );
-    return ptr;
+    return (element)ptr;
 }
 
 element element::get_prev_sibling(void) const
@@ -272,7 +274,7 @@ element element::get_prev_sibling(void) const
         is_element(_Mynode),
         break
         );
-    return ptr;
+    return (element)ptr;
 }
 
 element element::get_next_sibling(void) const
@@ -284,7 +286,7 @@ element element::get_next_sibling(void) const
         is_element(_Mynode),
         break
         );
-    return ptr;
+    return (element)ptr;
 }
 
 vstring element::get_name(void) const
@@ -363,33 +365,38 @@ vstring element::value_of_attr(void* attrv)
     return std::move(value);
 }
 
-void element::set_value(const char* value)
+void element::set_value(const vstring& value)
 {
     if (is_valid())
     {
-        auto palloc = detail(_Mynode)->get_allocator();
         auto parent = detail(_Mynode)->parent();
-        detail(_Mynode)->value(palloc->allocate_string(value), strlen(value));
+        if (value.is_literal()) {
+            detail(_Mynode)->value(value.c_str(), value.size());
+        }
+        else {
+            auto palloc = detail(_Mynode)->get_allocator();
+            detail(_Mynode)->value(adapt_vstring(value, palloc), value.size());
+        }
     }
 }
 
 #if _USE_IN_COCOS2DX
 
-void element::set_attribute_value(const char* name, const cocos2d::Color3B& value)
+void element::set_attribute_value(const vstring& name, const cocos2d::Color3B& value)
 {
     char svalue[128] = { 0 };
     sprintf(svalue, "%u,%u,%u", (unsigned int)value.r, (unsigned int)value.g, (unsigned int)value.b);
     this->set_attribute_value(name, svalue);
 }
 
-void element::set_attribute_value(const char* name, const cocos2d::Color4B& value)
+void element::set_attribute_value(const vstring& name, const cocos2d::Color4B& value)
 {
     char svalue[128] = { 0 };
     sprintf(svalue, "%u,%u,%u,%u", (unsigned int)value.r, (unsigned int)value.g, (unsigned int)value.b, (unsigned int)value.a);
     set_attribute_value(name, svalue);
 }
 
-void  element::set_attribute_value(const char* name, const cocos2d::Color4F& value)
+void  element::set_attribute_value(const vstring& name, const cocos2d::Color4F& value)
 {
     char svalue[128] = { 0 };
     sprintf(svalue, "%.3f,%.3f,%.3f,%.3f", value.r, value.g, value.b, value.a);
@@ -397,26 +404,26 @@ void  element::set_attribute_value(const char* name, const cocos2d::Color4F& val
 }
 
 
-void  element::set_attribute_value(const char* name, const cocos2d::Rect& value)
+void  element::set_attribute_value(const vstring& name, const cocos2d::Rect& value)
 {
     char svalue[128] = { 0 };
     sprintf(svalue, "%.3f,%.3f,%.3f,%.3f", value.origin.x, value.origin.y, value.size.width, value.size.height);
     set_attribute_value(name, svalue);
 }
 
-void element::set_attribute_value(const char* name, const cocos2d::Vec2& value)
+void element::set_attribute_value(const vstring& name, const cocos2d::Vec2& value)
 {
     char svalue[128] = { 0 };
     sprintf(svalue, "%.3f,%.3f", value.x, value.y);
     set_attribute_value(name, svalue);
 }
-void element::set_attribute_value(const char* name, const cocos2d::Vec3& value)
+void element::set_attribute_value(const vstring& name, const cocos2d::Vec3& value)
 {
     char svalue[128] = { 0 };
     sprintf(svalue, "%.3f,%.3f, %.3f", value.x, value.y, value.z);
     set_attribute_value(name, svalue);
 }
-void element::set_attribute_value(const char* name, const cocos2d::Size& value)
+void element::set_attribute_value(const vstring& name, const cocos2d::Size& value)
 {
     char svalue[128] = { 0 };
     sprintf(svalue, "%.3f,%.3f", value.width, value.height);
@@ -505,43 +512,48 @@ cocos2d::Size    element::get_attribute_value(const char* name, const cocos2d::S
 
 #endif
 
-void element::set_attribute_value(const char* name, const char* value)
+void element::set_attribute_value(const vstring& name, const vstring& value)
 { // pitfall: string-literal
     if (is_valid()) {
-        auto where = detail(_Mynode)->first_attribute(name);
+        auto where = detail(_Mynode)->first_attribute(name.c_str(), name.size());
         auto palloc = detail(_Mynode)->get_allocator();
         if (where) {
-            where->value(palloc->allocate_string(value), strlen(value));
+            where->value(adapt_vstring(value, palloc), value.size());
         }
         else {
             detail(_Mynode)->insert_attribute(where,
-                palloc->allocate_attribute(
-                    name, palloc->allocate_string(value)));
+                palloc->allocate_attribute(adapt_vstring(name, palloc), 
+                    adapt_vstring(value, palloc),
+                    name.size(),
+                    value.size() ));
         }
     }
 }
 
-element element::add_child(const char* name, const char* value /* = nullptr */) const
+element element::add_child(const vstring& name, const vstring& value /* = nullptr */) const
 {
     if (is_valid()) {
         auto palloc = detail(_Mynode)->get_allocator();
-        auto newnode = palloc->allocate_node(rapidxml::node_type::node_element, name, value != nullptr ? palloc->allocate_string(value) : nullptr);
+        auto newnode = palloc->allocate_node(rapidxml::node_type::node_element, 
+            adapt_vstring(name, palloc), 
+            value.empty() ? nullptr : adapt_vstring(value, palloc), 
+            name.size(), value.size());
         detail(_Mynode)->append_node(newnode);
-        return newnode;
+        return (element)newnode;
     }
-    return nullptr;
+    return (element)nullptr;
 }
 
-element element::add_child(const std::string& name, const char* value /* = nullptr */) const
-{
-    if (is_valid()) {
-        auto palloc = detail(_Mynode)->get_allocator();
-        auto newnode = palloc->allocate_node(rapidxml::node_type::node_element, palloc->allocate_string(name.c_str(), name.size()), value != nullptr ? palloc->allocate_string(value) : nullptr);
-        detail(_Mynode)->append_node(newnode);
-        return newnode;
-    }
-    return nullptr;
-}
+//element element::add_child(const std::string& name, const char* value /* = nullptr */) const
+//{
+//    if (is_valid()) {
+//        auto palloc = detail(_Mynode)->get_allocator();
+//        auto newnode = palloc->allocate_node(rapidxml::node_type::node_element, palloc->allocate_string(name.c_str(), name.size()), value != nullptr ? palloc->allocate_string(value) : nullptr);
+//        detail(_Mynode)->append_node(newnode);
+//        return newnode;
+//    }
+//    return nullptr;
+//}
 
 void element::remove_children(void)
 {
@@ -588,6 +600,48 @@ std::string element::to_string(bool formatted) const
         return std::move(text);
     }
     return "";
+}
+
+inline void xmldrv::element::set_value(const int & value)
+{
+    char svalue[64];
+    int n = sprintf(svalue, "%d", value);
+    set_value(vstring(svalue, n));
+}
+
+inline void xmldrv::element::set_value(const long long & value)
+{
+    char svalue[64];
+    int n = sprintf(svalue, "%lld", value);
+    set_value(vstring(svalue, n));
+}
+
+inline void xmldrv::element::set_value(const double & value)
+{
+    char svalue[64];
+    int n = sprintf(svalue, "%.*g", 16, value);
+    set_value(vstring(svalue, n));
+}
+
+inline void xmldrv::element::set_attribute_value(const vstring & name, const int & value)
+{
+    char svalue[64];
+    int n = sprintf(svalue, "%d", value);
+    set_attribute_value(name, vstring(svalue, n));
+}
+
+inline void xmldrv::element::set_attribute_value(const vstring & name, const long long & value)
+{
+    char svalue[64];
+    int n = sprintf(svalue, "%lld", value);
+    set_attribute_value(name, vstring(svalue, n));
+}
+
+inline void xmldrv::element::set_attribute_value(const vstring & name, const double & value)
+{
+    char svalue[64];
+    int n = sprintf(svalue, "%.*g", 16, value);
+    set_attribute_value(name, vstring(svalue, n));
 }
 
 
@@ -770,20 +824,20 @@ void document::save(const char* filename, bool formatted) const
 
 element document::root(void) const
 {
-    return impl_->doc.first_node();
+    return (element)impl_->doc.first_node();
 }
 
 element document::create_element(const char* name, const char* value)
 {
     auto newe = impl_->doc.allocate_node(rapidxml::node_type::node_element, impl_->doc.allocate_string(name), impl_->doc.allocate_string(value));
     newe->set_allocator(&impl_->doc);
-    return newe;
+    return (element)newe;
 }
 
 element document::select_element(const char*, int) const
 {
     throw std::logic_error("It's just supported by xerces-c which has 3.0.0 or more version for xml4w using xpath to operate xml!");
-    return nullptr;
+    return (element)nullptr;
 }
 
 std::string document::to_string(bool formatted) const

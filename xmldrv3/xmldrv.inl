@@ -29,19 +29,19 @@ _Ty element::get_attribute_value(const char* name, const _Ty& default_value) con
     return nsc::to_numeric<_Ty>(this->get_attribute_value(name, nsc::to_string(default_value)));
 }
 
-template<typename _Ty> inline
-void element::set_value(const _Ty& value)
-{
-    this->set_value(nsc::to_string(value));
-}
-
-template<typename _Ty> inline
-void element::set_attribute_value(const char* name, const _Ty& value)
-{
-    if(_Mynode != nullptr) {
-        this->set_attribute_value(name, nsc::to_string(value).c_str());
-    }
-}
+//template<typename _Ty> inline
+//void element::set_value(const _Ty& value)
+//{
+//    this->set_value(nsc::to_string(value));
+//}
+//
+//template<typename _Ty> inline
+//void element::set_attribute_value(const char* name, const _Ty& value)
+//{
+//    if(_Mynode != nullptr) {
+//        this->set_attribute_value(name, nsc::to_string(value).c_str());
+//    }
+//}
 
 template<typename _Handler> inline
 void element::cforeach(const _Handler& handler) const

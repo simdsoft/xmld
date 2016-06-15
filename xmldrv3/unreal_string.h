@@ -209,7 +209,7 @@ namespace purelib {
     // TEMPLATE CLASS unreal_string forward declare
     template<typename _Elem,
         typename _Cleaner = pseudo_cleaner<_Elem> >
-    class unreal_string;
+        class unreal_string;
 
     typedef unreal_string<char, pod_cleaner<char> >          managed_cstring;
     typedef unreal_string<wchar_t, pod_cleaner<wchar_t> >    managed_wcstring;
@@ -220,7 +220,7 @@ namespace purelib {
 
     template<typename _Elem,
         typename _Cleaner>
-    class unreal_string
+        class unreal_string
     {
         typedef unreal_string<_Elem, _Cleaner> _Myt;
 
@@ -230,52 +230,40 @@ namespace purelib {
             _Tidy();
         }
 
-        unreal_string(const _Elem* _Ptr)
-        {
-            _Tidy();
-            this->assign(_Ptr);
-        }
-
         template<size_t _Size>
         unreal_string(const _Elem(&_Ptr)[_Size])
         {
-            _Tidy();
-            this->assign(_Ptr, _Size);
+            this->assign(_Ptr, _Size - 1);
+            this->_Literal = 1;
         }
 
         unreal_string(const _Elem* _Ptr, size_t _Length)
         {
-            _Tidy();
             this->assign(_Ptr, _Length);
         }
 
         unreal_string(const _Elem* _First, const _Elem* _Last)
         {
-            _Tidy();
             this->assign(_First, _Last);
         }
 
         unreal_string(_Elem* _Ptr)
         {
-            _Tidy();
             this->assign(_Ptr);
         }
 
         unreal_string(_Elem* _Ptr, size_t _Length)
         {
-            _Tidy();
             this->assign(_Ptr, _Length);
         }
 
         unreal_string(_Elem* _First, _Elem* _Last)
         {
-            _Tidy();
             this->assign(_First, _Last);
         }
 
         unreal_string(const std::basic_string<_Elem>& _Right)
         {
-            _Tidy();
             this->assign(_Right);
         }
 
@@ -306,7 +294,6 @@ namespace purelib {
 
         unreal_string(const std::vector<_Elem>& _Right)
         {
-            _Tidy();
             this->assign(_Right);
         }
 
@@ -339,17 +326,28 @@ namespace purelib {
             this->_Bx._Const_Ptr = nullptr;
         }
 
-        _Myt& assign(const _Elem* _Ptr)
-        { // shallow copy
-            if (_Ptr != nullptr) {
-                this->_Bx._Const_Ptr = _Ptr;
-                this->_Mysize = native_utils::strlen(_Ptr);
-            }
+        bool is_literal() const
+        {
+            return this->_Literal;
+        }
+
+        template<size_t _Size>
+        _Myt& assign(const _Elem(&_Ptr)[_Size])
+        {
+            _Tidy();
+
+            // shallow copy
+            this->_Bx._Const_Ptr = _Ptr;
+            this->_Mysize = _Size - 1;
+            this->_Literal = 1;
+
             return *this;
         }
 
         _Myt& assign(const _Elem* _Ptr, size_t _Length)
         { // shallow copy
+            _Tidy();
+
             if (_Ptr != nullptr) {
                 this->_Bx._Const_Ptr = _Ptr;
                 this->_Mysize = _Length;
@@ -359,6 +357,8 @@ namespace purelib {
 
         _Myt& assign(const _Elem* _First, const _Elem* _Last)
         { // shallow copy
+            _Tidy();
+
             if (_First != nullptr && _First <= _Last) {
                 this->_Bx._Const_Ptr = _First;
                 this->_Mysize = _Last - _First;
@@ -368,6 +368,8 @@ namespace purelib {
 
         _Myt& assign(_Elem* _Ptr)
         { // shallow copy
+            _Tidy();
+
             if (_Ptr != nullptr) {
                 this->_Bx._Ptr = _Ptr;
                 this->_Mysize = native_utils::strlen(_Ptr);
@@ -377,6 +379,8 @@ namespace purelib {
 
         _Myt& assign(_Elem* _Ptr, size_t _Length)
         { // shallow copy
+            _Tidy();
+
             if (_Ptr != nullptr) {
                 this->_Bx._Ptr = _Ptr;
                 this->_Mysize = _Length;
@@ -386,6 +390,8 @@ namespace purelib {
 
         _Myt& assign(_Elem* _First, _Elem* _Last)
         { // shallow copy
+            _Tidy();
+
             if (_First != nullptr && _First <= _Last) {
                 this->_Bx._Ptr = _First;
                 this->_Mysize = _Last - _First;
@@ -395,6 +401,8 @@ namespace purelib {
 
         _Myt& assign(const std::basic_string<_Elem>& _Right)
         {
+            _Tidy();
+
             static_assert(!_Cleaner::value, "atl-string can't assign to a managed unreal_string");
 
             this->_Bx._Const_Ptr = _Right.c_str();
@@ -404,6 +412,8 @@ namespace purelib {
 
         _Myt& assign(const std::vector<_Elem>& _Right)
         {
+            _Tidy();
+
             static_assert(!_Cleaner::value, "stl-string can't assign to a managed unreal_string");
 
             this->_Bx._Const_Ptr = _Right.data();
@@ -413,6 +423,8 @@ namespace purelib {
 
         _Myt& assign(const _Myt& _Right)
         {
+            _Tidy();
+
             static_assert(!_Cleaner::value, "the managed unreal string can't assign to this managed unreal_string object!");
 
             _Tidy();
@@ -422,6 +434,8 @@ namespace purelib {
 
         _Myt& assign(_Myt&& _Right)
         {
+            _Tidy();
+
             if (this != &_Right)
                 _Assign_rv(std::forward<_Myt>(_Right));
             return *this;
@@ -430,6 +444,8 @@ namespace purelib {
         template<typename _OtherElem, typename _OtherCleaner>
         _Myt& assign(const unreal_string<_OtherElem, _OtherCleaner>& _Right)
         {
+            _Tidy();
+
             static_assert(std::is_same<_Elem, _OtherElem>::value, "can't assign unreal string assign, type not same!");
             static_assert(!_Cleaner::value || !_OtherCleaner::value, "the unreal string can't assign to this managed unreal_string object!");
 
@@ -441,6 +457,8 @@ namespace purelib {
         template<typename _OtherElem, typename _OtherCleaner>
         _Myt& assign(unreal_string<_OtherElem, _OtherCleaner>&& _Right)
         {
+            _Tidy();
+
             if (this != &_Right)
                 _Assign_rv(std::forward<unreal_string<_OtherElem, _OtherCleaner>>(_Right));
             return *this;
@@ -449,6 +467,8 @@ namespace purelib {
         template<typename _OtherElem, typename _OtherCleaner>
         void _Assign_rv(unreal_string<_OtherElem, _OtherCleaner>&& _Right)
         {
+            _Tidy();
+
             ::memcpy(this, &_Right, sizeof(*this));
 
             if (this->managed())
@@ -463,7 +483,7 @@ namespace purelib {
                 this->_Bx._Ptr = (_Elem*)realloc(this->_Bx._Ptr/*nullptr ok*/, _Capacity << ULS_ELEM_SHIFT);
             }
         }
-        
+
         void cappend(const _Elem* _Ptr, size_t _Count)
         {
             static_assert(_Cleaner::value, "only managed_cstring is support append operation!");
@@ -483,7 +503,7 @@ namespace purelib {
                         this->_Bx._Ptr = (_Elem*)realloc(this->_Bx._Ptr, _Capacity << ULS_ELEM_SHIFT);
                     }
 
-                    ::memcpy(this->_Bx._Ptr + ( (_Mysize) << ULS_ELEM_SHIFT ), _Ptr, _Count << ULS_ELEM_SHIFT);
+                    ::memcpy(this->_Bx._Ptr + ((_Mysize) << ULS_ELEM_SHIFT), _Ptr, _Count << ULS_ELEM_SHIFT);
 
                     _Mysize = _Newsize;
                 }
@@ -545,11 +565,6 @@ namespace purelib {
             return _Cleaner::value;
         }
 
-        void  set_size(size_t _Newsize)
-        {
-            this->_Mysize = _Newsize;
-        }
-
         void shrink(size_t _Newsize)
         {
             if (_Mysize > _Newsize)
@@ -606,14 +621,9 @@ namespace purelib {
             return this->_Bx._Const_Ptr;
         }
 
-        size_t& lsize()
+        void set_size(size_t _Size)
         {
-            return _Mysize;
-        }
-
-        size_t& llength()
-        {
-            return _Mysize;
+            _Mysize = _Size;
         }
 
         size_t length(void) const
@@ -679,7 +689,7 @@ namespace purelib {
                 if (_Right != nullptr)
                 {
                     int diff = memcmp(this->_Bx._Ptr, _Right, (_Mysize < _Count ? _Mysize : _Count) << (sizeof(_Elem) >> 1));
-                    return (diff != 0) ? diff : (static_cast<int>(_Mysize)-static_cast<int>(_Count));
+                    return (diff != 0) ? diff : (static_cast<int>(_Mysize) - static_cast<int>(_Count));
                 }
                 else {
                     return 1;
@@ -746,9 +756,15 @@ namespace purelib {
             //_Elem _Buf[_BUF_SIZE];
             const _Elem* _Const_Ptr; // always shallow copy
             _Elem*       _Ptr;       // managed pointer
-            //char _Alias[_BUF_SIZE];	// to permit aliasing
+                                     //char _Alias[_BUF_SIZE];	// to permit aliasing
         } _Bx;
-        size_t       _Mysize;
+#if defined(_M_X64) || defined(_LP64) || defined(__x86_64) || defined(_WIN64)
+        size_t       _Litral : 1;
+        size_t       _Mysize : 63;
+#else
+        size_t       _Literal : 1;
+        size_t       _Mysize : 31;
+#endif
         size_t       _Capacity;
     };
 
@@ -756,8 +772,8 @@ namespace purelib {
     template<typename _Elem,
         typename _Cleaner> inline
         std::basic_string<_Elem> operator+(
-        const unreal_string<_Elem, _Cleaner>& _Left,
-        const unreal_string<_Elem, _Cleaner>& _Right)
+            const unreal_string<_Elem, _Cleaner>& _Left,
+            const unreal_string<_Elem, _Cleaner>& _Right)
     {    // unreal_string + unreal_string
         return (_Left.to_string() + _Right.to_string());
     }
@@ -765,8 +781,8 @@ namespace purelib {
     template<typename _Elem,
         typename _Cleaner> inline
         std::basic_string<_Elem> operator+(
-        const unreal_string<_Elem, _Cleaner>& _Left,
-        const std::string& _Right)
+            const unreal_string<_Elem, _Cleaner>& _Left,
+            const std::string& _Right)
     {    // unreal_string + std::string
         return (_Left.to_string() + _Right);
     }
@@ -774,8 +790,8 @@ namespace purelib {
     template<typename _Elem,
         typename _Cleaner> inline
         std::basic_string<_Elem> operator+(
-        const unreal_string<_Elem, _Cleaner>& _Left,
-        const _Elem* _Right)
+            const unreal_string<_Elem, _Cleaner>& _Left,
+            const _Elem* _Right)
     {    // unreal_string + NTCS
         return (_Left.to_string() + _Right);
     }
@@ -783,8 +799,8 @@ namespace purelib {
     template<typename _Elem,
         typename _Cleaner> inline
         std::basic_string<_Elem> operator+(
-        const std::string& _Left,
-        const unreal_string<_Elem, _Cleaner>& _Right)
+            const std::string& _Left,
+            const unreal_string<_Elem, _Cleaner>& _Right)
     {    // std::string + unreal_string
         return (_Left + _Right.c_str());
     }
@@ -792,8 +808,8 @@ namespace purelib {
     template<typename _Elem,
         typename _Cleaner> inline
         std::basic_string<_Elem> operator+(
-        const _Elem* _Left,
-        const unreal_string<_Elem, _Cleaner>& _Right)
+            const _Elem* _Left,
+            const unreal_string<_Elem, _Cleaner>& _Right)
     {    // NTCS + unreal_string
         return (std::string(_Left) + _Right.c_str());
     }
@@ -802,8 +818,8 @@ namespace purelib {
     template<typename _Elem,
         typename _Cleaner> inline
         bool operator==(
-        const unreal_string<_Elem, _Cleaner>& _Left,
-        const unreal_string<_Elem, _Cleaner>& _Right)
+            const unreal_string<_Elem, _Cleaner>& _Left,
+            const unreal_string<_Elem, _Cleaner>& _Right)
     {    // test for unreal_string equality
         return (_Left.compare(_Right) == 0);
     }
@@ -811,8 +827,8 @@ namespace purelib {
     template<typename _Elem,
         typename _Cleaner> inline
         bool operator==(
-        const _Elem* _Left,
-        const unreal_string<_Elem, _Cleaner>& _Right)
+            const _Elem* _Left,
+            const unreal_string<_Elem, _Cleaner>& _Right)
     {    // test for NTCS vs. unreal_string equality
         return (_Right.compare(_Left) == 0);
     }
@@ -820,8 +836,8 @@ namespace purelib {
     template<typename _Elem,
         typename _Cleaner> inline
         bool operator==(
-        const unreal_string<_Elem, _Cleaner>& _Left,
-        const _Elem* _Right)
+            const unreal_string<_Elem, _Cleaner>& _Left,
+            const _Elem* _Right)
     {    // test for unreal_string vs. NTCS equality
         return (_Left.compare(_Right) == 0);
     }
@@ -829,8 +845,8 @@ namespace purelib {
     template<typename _Elem,
         typename _Cleaner> inline
         bool operator==(
-        const std::basic_string<_Elem>& _Left,
-        const unreal_string<_Elem, _Cleaner>& _Right)
+            const std::basic_string<_Elem>& _Left,
+            const unreal_string<_Elem, _Cleaner>& _Right)
     {    // test for std::string vs. unreal_string equality
         return (_Right.compare(_Left.c_str(), _Left.length()) == 0);
     }
@@ -838,8 +854,8 @@ namespace purelib {
     template<typename _Elem,
         typename _Cleaner> inline
         bool operator==(
-        const unreal_string<_Elem, _Cleaner>& _Left,
-        const std::basic_string<_Elem>& _Right)
+            const unreal_string<_Elem, _Cleaner>& _Left,
+            const std::basic_string<_Elem>& _Right)
     {    // test for unreal_string vs. std::string equality
         return (_Left.compare(_Right.c_str(), _Right.length()) == 0);
     }
@@ -847,8 +863,8 @@ namespace purelib {
     template<typename _Elem,
         typename _Cleaner> inline
         bool operator!=(
-        const unreal_string<_Elem, _Cleaner>& _Left,
-        const unreal_string<_Elem, _Cleaner>& _Right)
+            const unreal_string<_Elem, _Cleaner>& _Left,
+            const unreal_string<_Elem, _Cleaner>& _Right)
     {    // test for unreal_string inequality
         return (!(_Left == _Right));
     }
@@ -856,8 +872,8 @@ namespace purelib {
     template<typename _Elem,
         typename _Cleaner> inline
         bool operator!=(
-        const _Elem* _Left,
-        const unreal_string<_Elem, _Cleaner>& _Right)
+            const _Elem* _Left,
+            const unreal_string<_Elem, _Cleaner>& _Right)
     {    // test for NTCS vs. unreal_string inequality
         return (!(_Left == _Right));
     }
@@ -865,8 +881,8 @@ namespace purelib {
     template<typename _Elem,
         typename _Cleaner> inline
         bool operator!=(
-        const unreal_string<_Elem, _Cleaner>& _Left,
-        const _Elem* _Right)
+            const unreal_string<_Elem, _Cleaner>& _Left,
+            const _Elem* _Right)
     {    // test for unreal_string vs. NTCS inequality
         return (!(_Left == _Right));
     }
@@ -874,8 +890,8 @@ namespace purelib {
     template<typename _Elem,
         typename _Cleaner> inline
         bool operator!=(
-        const std::basic_string<_Elem>& _Left,
-        const unreal_string<_Elem, _Cleaner>& _Right)
+            const std::basic_string<_Elem>& _Left,
+            const unreal_string<_Elem, _Cleaner>& _Right)
     {    // test for std::string vs. unreal_string inequality
         return (!(_Left == _Right));
     }
@@ -883,8 +899,8 @@ namespace purelib {
     template<typename _Elem,
         typename _Cleaner> inline
         bool operator!=(
-        const unreal_string<_Elem, _Cleaner>& _Left,
-        const std::basic_string<_Elem>& _Right)
+            const unreal_string<_Elem, _Cleaner>& _Left,
+            const std::basic_string<_Elem>& _Right)
     {    // test for unreal_string vs. std::string inequality
         return (!(_Left == _Right));
     }
@@ -892,8 +908,8 @@ namespace purelib {
     template<typename _Elem,
         typename _Cleaner> inline
         bool operator<(
-        const unreal_string<_Elem, _Cleaner>& _Left,
-        const unreal_string<_Elem, _Cleaner>& _Right)
+            const unreal_string<_Elem, _Cleaner>& _Left,
+            const unreal_string<_Elem, _Cleaner>& _Right)
     {    // test if unreal_string < unreal_string
         return (_Left.compare(_Right) < 0);
     }
@@ -901,8 +917,8 @@ namespace purelib {
     template<typename _Elem,
         typename _Cleaner> inline
         bool operator<(
-        const _Elem* _Left,
-        const unreal_string<_Elem, _Cleaner>& _Right)
+            const _Elem* _Left,
+            const unreal_string<_Elem, _Cleaner>& _Right)
     {    // test if NTCS < unreal_string
         return (_Right.compare(_Left) > 0);
     }
@@ -910,8 +926,8 @@ namespace purelib {
     template<typename _Elem,
         typename _Cleaner> inline
         bool operator<(
-        const unreal_string<_Elem, _Cleaner>& _Left,
-        const _Elem* _Right)
+            const unreal_string<_Elem, _Cleaner>& _Left,
+            const _Elem* _Right)
     {    // test if unreal_string < NTCS
         return (_Left.compare(_Right) < 0);
     }
@@ -919,8 +935,8 @@ namespace purelib {
     template<typename _Elem,
         typename _Cleaner> inline
         bool operator<(
-        const std::basic_string<_Elem>& _Left,
-        const unreal_string<_Elem, _Cleaner>& _Right)
+            const std::basic_string<_Elem>& _Left,
+            const unreal_string<_Elem, _Cleaner>& _Right)
     {    // test if std::string < unreal_string
         return (_Left.compare(_Right.c_str()) > 0);
     }
@@ -928,8 +944,8 @@ namespace purelib {
     template<typename _Elem,
         typename _Cleaner> inline
         bool operator<(
-        const unreal_string<_Elem, _Cleaner>& _Left,
-        const std::basic_string<_Elem>& _Right)
+            const unreal_string<_Elem, _Cleaner>& _Left,
+            const std::basic_string<_Elem>& _Right)
     {    // test if unreal_string < std::string
         return (_Right.compare(_Left.c_str()) < 0);
     }
@@ -937,8 +953,8 @@ namespace purelib {
     template<typename _Elem,
         typename _Cleaner> inline
         bool operator>(
-        const unreal_string<_Elem, _Cleaner>& _Left,
-        const unreal_string<_Elem, _Cleaner>& _Right)
+            const unreal_string<_Elem, _Cleaner>& _Left,
+            const unreal_string<_Elem, _Cleaner>& _Right)
     {    // test if unreal_string > unreal_string
         return (_Right < _Left);
     }
@@ -946,8 +962,8 @@ namespace purelib {
     template<typename _Elem,
         typename _Cleaner> inline
         bool operator>(
-        const _Elem* _Left,
-        const unreal_string<_Elem, _Cleaner>& _Right)
+            const _Elem* _Left,
+            const unreal_string<_Elem, _Cleaner>& _Right)
     {    // test if NTCS > unreal_string
         return (_Right < _Left);
     }
@@ -955,8 +971,8 @@ namespace purelib {
     template<typename _Elem,
         typename _Cleaner> inline
         bool operator>(
-        const unreal_string<_Elem, _Cleaner>& _Left,
-        const _Elem* _Right)
+            const unreal_string<_Elem, _Cleaner>& _Left,
+            const _Elem* _Right)
     {    // test if unreal_string > NTCS
         return (_Right < _Left);
     }
@@ -964,8 +980,8 @@ namespace purelib {
     template<typename _Elem,
         typename _Cleaner> inline
         bool operator>(
-        const std::basic_string<_Elem>& _Left,
-        const unreal_string<_Elem, _Cleaner>& _Right)
+            const std::basic_string<_Elem>& _Left,
+            const unreal_string<_Elem, _Cleaner>& _Right)
     {    // test if std::string > unreal_string
         return (_Right < _Left);
     }
@@ -973,8 +989,8 @@ namespace purelib {
     template<typename _Elem,
         typename _Cleaner> inline
         bool operator>(
-        const unreal_string<_Elem, _Cleaner>& _Left,
-        const std::basic_string<_Elem>& _Right)
+            const unreal_string<_Elem, _Cleaner>& _Left,
+            const std::basic_string<_Elem>& _Right)
     {    // test if unreal_string > std::string
         return (_Right < _Left);
     }
@@ -982,8 +998,8 @@ namespace purelib {
     template<typename _Elem,
         typename _Cleaner> inline
         bool operator<=(
-        const unreal_string<_Elem, _Cleaner>& _Left,
-        const unreal_string<_Elem, _Cleaner>& _Right)
+            const unreal_string<_Elem, _Cleaner>& _Left,
+            const unreal_string<_Elem, _Cleaner>& _Right)
     {    // test if unreal_string <= unreal_string
         return (!(_Right < _Left));
     }
@@ -991,8 +1007,8 @@ namespace purelib {
     template<typename _Elem,
         typename _Cleaner> inline
         bool operator<=(
-        const _Elem* _Left,
-        const unreal_string<_Elem, _Cleaner>& _Right)
+            const _Elem* _Left,
+            const unreal_string<_Elem, _Cleaner>& _Right)
     {    // test if NTCS <= unreal_string
         return (!(_Right < _Left));
     }
@@ -1000,8 +1016,8 @@ namespace purelib {
     template<typename _Elem,
         typename _Cleaner> inline
         bool operator<=(
-        const unreal_string<_Elem, _Cleaner>& _Left,
-        const _Elem* _Right)
+            const unreal_string<_Elem, _Cleaner>& _Left,
+            const _Elem* _Right)
     {    // test if unreal_string <= NTCS
         return (!(_Right < _Left));
     }
@@ -1009,8 +1025,8 @@ namespace purelib {
     template<typename _Elem,
         typename _Cleaner> inline
         bool operator<=(
-        const std::basic_string<_Elem>& _Left,
-        const unreal_string<_Elem, _Cleaner>& _Right)
+            const std::basic_string<_Elem>& _Left,
+            const unreal_string<_Elem, _Cleaner>& _Right)
     {    // test if std::string <= unreal_string
         return (!(_Right < _Left));
     }
@@ -1018,8 +1034,8 @@ namespace purelib {
     template<typename _Elem,
         typename _Cleaner> inline
         bool operator<=(
-        const unreal_string<_Elem, _Cleaner>& _Left,
-        const std::basic_string<_Elem>& _Right)
+            const unreal_string<_Elem, _Cleaner>& _Left,
+            const std::basic_string<_Elem>& _Right)
     {    // test if unreal_string <= std::string
         return (!(_Right < _Left));
     }
@@ -1027,8 +1043,8 @@ namespace purelib {
     template<typename _Elem,
         typename _Cleaner> inline
         bool operator>=(
-        const unreal_string<_Elem, _Cleaner>& _Left,
-        const unreal_string<_Elem, _Cleaner>& _Right)
+            const unreal_string<_Elem, _Cleaner>& _Left,
+            const unreal_string<_Elem, _Cleaner>& _Right)
     {    // test if unreal_string >= unreal_string
         return (!(_Left < _Right));
     }
@@ -1036,8 +1052,8 @@ namespace purelib {
     template<typename _Elem,
         typename _Cleaner> inline
         bool operator>=(
-        const _Elem* _Left,
-        const unreal_string<_Elem, _Cleaner>& _Right)
+            const _Elem* _Left,
+            const unreal_string<_Elem, _Cleaner>& _Right)
     {    // test if NTCS >= unreal_string
         return (!(_Left < _Right));
     }
@@ -1045,8 +1061,8 @@ namespace purelib {
     template<typename _Elem,
         typename _Cleaner> inline
         bool operator>=(
-        const unreal_string<_Elem, _Cleaner>& _Left,
-        const _Elem* _Right)
+            const unreal_string<_Elem, _Cleaner>& _Left,
+            const _Elem* _Right)
     {    // test if unreal_string >= NTCS
         return (!(_Left < _Right));
     }
@@ -1054,8 +1070,8 @@ namespace purelib {
     template<typename _Elem,
         typename _Cleaner> inline
         bool operator>=(
-        const std::basic_string<_Elem>& _Left,
-        const unreal_string<_Elem, _Cleaner>& _Right)
+            const std::basic_string<_Elem>& _Left,
+            const unreal_string<_Elem, _Cleaner>& _Right)
     {    // test if std::string >= unreal_string
         return (!(_Left < _Right));
     }
@@ -1063,8 +1079,8 @@ namespace purelib {
     template<typename _Elem,
         typename _Cleaner> inline
         bool operator>=(
-        const unreal_string<_Elem, _Cleaner>& _Left,
-        const std::basic_string<_Elem>& _Right)
+            const unreal_string<_Elem, _Cleaner>& _Left,
+            const std::basic_string<_Elem>& _Right)
     {    // test if unreal_string >= std::string
         return (!(_Left < _Right));
     }
@@ -1073,8 +1089,8 @@ namespace purelib {
     template<typename _Elem,
         typename _Cleaner> inline
         std::basic_ostream<_Elem>& operator<<(
-        std::basic_ostream<_Elem>& _Ostr,
-        const unreal_string<_Elem, _Cleaner>& _Str)
+            std::basic_ostream<_Elem>& _Ostr,
+            const unreal_string<_Elem, _Cleaner>& _Str)
     {    // insert a unreal_string
         if (!_Str.empty()) {
             _Ostr << _Str.c_str();
@@ -1085,7 +1101,7 @@ namespace purelib {
 }; // namespace: purelib
 
 
-/* unreal_string hash, support unordered container. */
+   /* unreal_string hash, support unordered container. */
 namespace std {
     // FUNCTION _Hash_seq
     inline size_t _FNV1a_hash(const void* _First, size_t _Count)
@@ -1147,8 +1163,8 @@ namespace std {
 #endif
 
     template<class _Elem,
-    class _Cleaner>
-    struct hash < purelib::unreal_string<_Elem, _Cleaner> >
+        class _Cleaner>
+        struct hash < purelib::unreal_string<_Elem, _Cleaner> >
     {	// hash functor for basic_string
         typedef purelib::unreal_string<_Elem, _Cleaner> _Kty;
 
@@ -1157,7 +1173,7 @@ namespace std {
 #if defined(__APPLE__)
             return std::__do_string_hash(_Keyval.data(), _Keyval.data() + _Keyval.size());
 #elif defined(__linux__)
-            return std::_Hash_impl::hash(_Keyval.data(), _Keyval.size() << (sizeof(_Elem) >> 1) );
+            return std::_Hash_impl::hash(_Keyval.data(), _Keyval.size() << (sizeof(_Elem) >> 1));
 #else
             return _FNV1a_hash(_Keyval.c_str(), _Keyval.size() << ULS_ELEM_SHIFT);
 #endif

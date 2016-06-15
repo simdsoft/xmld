@@ -1,0 +1,7 @@
+<test.xml>
+  <people name="guoxiaodong" sex="male" age="33">
+    <address>Guandong Shenzhen Bao&apos;an Xi&apos;xiang Streets.</address>
+    <number>54000</number>
+  </people>
+</test.xml>
+

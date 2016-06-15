@@ -59,7 +59,7 @@
 
 /// version
 #ifndef _XML4WRAPPER_VERSION
-#define _XML4WRAPPER_VERSION "3.9.9"
+#define _XML4WRAPPER_VERSION "3.10"
 #endif
 
 #undef _XMLDRV_STATIC
@@ -150,12 +150,20 @@ namespace xmldrv {
     class element;
     class document;
 
+    template<typename _Ty>
+    struct numeric_wrapper
+    {
+    public:
+        numeric_wrapper(int r) : value(r) {}
+        _Ty value;
+    };
+
     class XMLDRV_DLL element
     {
         friend class document;
     public:
 
-        element(xml4wNodePtr _Ptr = nullptr);
+        explicit element(xml4wNodePtr _Ptr = nullptr);
         ~element(void);
 
         element         clone(void) const;
@@ -171,19 +179,17 @@ namespace xmldrv {
         element         get_first_child(void) const;
 
         element         operator[](int index) const;
-        element         operator[](const char* name) const;
+        element         operator[](const vstring& name) const;
         element         get_child(int index = 0) const;
         element         get_child(const char* name, int index = 0) const;
         /*void            get_children(std::vector<element>& children) const;
         void            get_children(const char* name, std::vector<element>& children) const;
 */
-        void            set_value(const char* value);
-        void            set_value(const std::string& value);
-        void            set_attribute_value(const char* name, const char* value);
+        void            set_value(const vstring& value);
+        void            set_attribute_value(const vstring& name, const vstring& value);
 
         element         add_child(const element& element) const;
-        element         add_child(const char* name, const char* value = nullptr) const;
-        element         add_child(const std::string& name, const char* value = nullptr) const;
+        element         add_child(const vstring& name, const vstring& value = nullptr) const;
 
         void            remove_child(int index = 0);
         void            remove_child(const char* name, int index = 0);
@@ -200,12 +206,14 @@ namespace xmldrv {
 
         template<typename _Ty>
         _Ty             get_attribute_value(const char* name, const _Ty& default_value = _Ty()) const;
+        
+        void            set_value(const int& value);
+        void            set_value(const long long& value);
+        void            set_value(const double& value);
 
-        template<typename _Ty>
-        void            set_value(const _Ty& value);
-
-        template<typename _Ty>
-        void            set_attribute_value(const char* name, const _Ty& value);
+        void            set_attribute_value(const vstring& name, const int& value);
+        void            set_attribute_value(const vstring& name, const long long& value);
+        void            set_attribute_value(const vstring& name, const double& value);
 
         template<typename _Handler>
         void            cforeach(const _Handler&) const;
@@ -227,29 +235,29 @@ namespace xmldrv {
 
         void*           first_attribute() const;
 
-        static void*     next_attribute(void* attr);
-        static vstring   name_of_attr(void* attr);
-        static vstring   value_of_attr(void* attr);
+        static void*    next_attribute(void* attr);
+        static vstring  name_of_attr(void* attr);
+        static vstring  value_of_attr(void* attr);
 
         bool            is_valid(void) const { return _Mynode != nullptr; }
         operator xml4wNodePtr(void) { return _Mynode; }
         operator xml4wNodePtr(void) const { return _Mynode;}
         
 #if _USE_IN_COCOS2DX
-        void set_attribute_value(const char* name, const cocos2d::Color3B& value);
-        void set_attribute_value(const char* name, const cocos2d::Color4B& value);
-        void set_attribute_value(const char* name, const cocos2d::Color4F& value);
-        void set_attribute_value(const char* name, const cocos2d::Rect& value);
-        void set_attribute_value(const char* name, const cocos2d::Vec2& value);
-        void set_attribute_value(const char* name, const cocos2d::Vec3& value);
-        void set_attribute_value(const char* name, const cocos2d::Size& value);
+        void set_attribute_value(const vstring& name, const cocos2d::Color3B& value);
+        void set_attribute_value(const vstring& name, const cocos2d::Color4B& value);
+        void set_attribute_value(const vstring& name, const cocos2d::Color4F& value);
+        void set_attribute_value(const vstring& name, const cocos2d::Rect& value);
+        void set_attribute_value(const vstring& name, const cocos2d::Vec2& value);
+        void set_attribute_value(const vstring& name, const cocos2d::Vec3& value);
+        void set_attribute_value(const vstring& name, const cocos2d::Size& value);
 
-        cocos2d::Color3B get_attribute_value(const char* name, const cocos2d::Color3B& default_value = cocos2d::Color3B::WHITE) const;
-        cocos2d::Color4B get_attribute_value(const char* name, const cocos2d::Color4B& default_value = cocos2d::Color4B::WHITE) const;
-        cocos2d::Color4F get_attribute_value(const char* name, const cocos2d::Color4F& default_value = cocos2d::Color4F::WHITE) const;
-        cocos2d::Rect    get_attribute_value(const char* name, const cocos2d::Rect& default_value = cocos2d::Rect::ZERO) const;
-        cocos2d::Vec2    get_attribute_value(const char* name, const cocos2d::Vec2& default_value = cocos2d::Vec2::ZERO) const;
-        cocos2d::Size    get_attribute_value(const char* name, const cocos2d::Size& default_value = cocos2d::Size::ZERO) const;
+        cocos2d::Color3B get_attribute_value(const vstring& name, const cocos2d::Color3B& default_value = cocos2d::Color3B::WHITE) const;
+        cocos2d::Color4B get_attribute_value(const vstring& name, const cocos2d::Color4B& default_value = cocos2d::Color4B::WHITE) const;
+        cocos2d::Color4F get_attribute_value(const vstring& name, const cocos2d::Color4F& default_value = cocos2d::Color4F::WHITE) const;
+        cocos2d::Rect    get_attribute_value(const vstring& name, const cocos2d::Rect& default_value = cocos2d::Rect::ZERO) const;
+        cocos2d::Vec2    get_attribute_value(const vstring& name, const cocos2d::Vec2& default_value = cocos2d::Vec2::ZERO) const;
+        cocos2d::Size    get_attribute_value(const vstring& name, const cocos2d::Size& default_value = cocos2d::Size::ZERO) const;
         /*template<> cocos2d::Color3B get_attribute_value<cocos2d::Color3B>(const char* name, const cocos2d::Color3B& default_value) const;
         template<> cocos2d::Color4B get_attribute_value<cocos2d::Color4B>(const char* name, const cocos2d::Color4B& default_value) const;
         template<> cocos2d::Color4F get_attribute_value<cocos2d::Color4F>(const char* name, const cocos2d::Color4F& default_value) const;
