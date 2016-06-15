@@ -229,6 +229,7 @@ namespace purelib {
         unreal_string(void)
         {
             _Tidy();
+            this->_Reliable = 1;
         }
 
         explicit unreal_string(const _Elem* _Ptr)
@@ -1218,7 +1219,7 @@ namespace std {
 /* _UNREAL_STRING_H_ */
 
 /*
-* Copyright (c) 2012-2015 by X.D. Guo  ALL RIGHTS RESERVED.
+* Copyright (c) 2012-2016 by X.D. Guo  ALL RIGHTS RESERVED.
 * Consult your license regarding permissions and restrictions.
 V3.0:2011 */
 

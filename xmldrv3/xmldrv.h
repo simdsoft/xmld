@@ -111,6 +111,8 @@ typedef purelib::unmanaged_string vstring;
 typedef std::string vstring;
 #endif
 
+extern vstring vstring_empty;
+
 /// basic types
 typedef void xml4wNode;
 typedef xml4wNode* xml4wNodePtr;
@@ -161,9 +163,9 @@ namespace xmldrv {
 
         vstring         get_name(void) const;
 
-        vstring         get_value(const vstring& default_value = "") const;
+        vstring         get_value(const vstring& default_value) const;
 
-        vstring         get_attribute_value(const vstring& name, const vstring& = "") const;
+        vstring         get_attribute_value(const vstring& name, const vstring&) const;
 
         bool            has_attribute(const vstring& name) const;
 
@@ -192,32 +194,36 @@ namespace xmldrv {
         std::string     to_string(bool formatted = false) const;
 
         /// get_value APIs
-        int8_t          get_value(const char& value = 0);
-        int16_t         get_value(const short& value = 0);
-        int32_t         get_value(const int& value = 0);
-        int64_t         get_value(const long long& value = 0);
+        bool            get_value(bool value = false, int radix = 10) const;
 
-        uint8_t         get_value(const unsigned char& value = 0);
-        uint16_t        get_value(const unsigned short& value = 0);
-        uint32_t        get_value(const unsigned int& value = 0);
-        uint64_t        get_value(const unsigned long long& value = 0);
+        int8_t          get_value(int8_t value = 0, int radix = 10) const;
+        int16_t         get_value(int16_t value = 0, int radix = 10) const;
+        int32_t         get_value(int32_t value = 0, int radix = 10) const;
+        int64_t         get_value(int64_t value = 0, int radix = 10) const;
 
-        float           get_value(const float& value = 0);
-        double          get_value(const double& value = 0);
+        uint8_t         get_value(uint8_t value = 0, int radix = 10) const;
+        uint16_t        get_value(uint16_t value = 0, int radix = 10) const;
+        uint32_t        get_value(uint32_t value = 0, int radix = 10) const;
+        uint64_t        get_value(uint64_t value = 0, int radix = 10) const;
+
+        float           get_value(float value = 0) const;
+        double          get_value(double value = 0) const;
 
         /// get_attribute_value APIs
-        int8_t          get_attribute_value(const vstring& name, const char& value = 0);
-        int16_t         get_attribute_value(const vstring& name, const short& value = 0);
-        int32_t         get_attribute_value(const vstring& name, const int& value = 0);
-        int64_t         get_attribute_value(const vstring& name, const long long& value = 0);
+        bool            get_attribute_value(const vstring& name, bool value = false, int radix = 10) const;
 
-        uint8_t         get_attribute_value(const vstring& name, const unsigned char& value = 0);
-        uint16_t        get_attribute_value(const vstring& name, const unsigned short& value = 0);
-        uint32_t        get_attribute_value(const vstring& name, const unsigned int& value = 0);
-        uint64_t        get_attribute_value(const vstring& name, const unsigned long long& value = 0);
+        int8_t          get_attribute_value(const vstring& name, int8_t value = 0, int radix = 10) const;
+        int16_t         get_attribute_value(const vstring& name, int16_t value = 0, int radix = 10) const;
+        int32_t         get_attribute_value(const vstring& name, int32_t value = 0, int radix = 10) const;
+        int64_t         get_attribute_value(const vstring& name, int64_t value = 0, int radix = 10) const;
 
-        float           get_attribute_value(const vstring& name, const float& value = 0);
-        double          get_attribute_value(const vstring& name, const double& value = 0);
+        uint8_t         get_attribute_value(const vstring& name, uint8_t value = 0, int radix = 10) const;
+        uint16_t        get_attribute_value(const vstring& name, uint16_t value = 0, int radix = 10) const;
+        uint32_t        get_attribute_value(const vstring& name, uint32_t value = 0, int radix = 10) const;
+        uint64_t        get_attribute_value(const vstring& name, uint64_t value = 0, int radix = 10) const;
+
+        float           get_attribute_value(const vstring& name, float value = 0) const;
+        double          get_attribute_value(const vstring& name, double value = 0) const;
 
         /// set_value APIs
         void            set_value(const char& value);

@@ -32,6 +32,8 @@
 
 using namespace xmldrv;
 
+vstring vstring_empty;
+
 #if !_USE_IN_COCOS2DX
 // xmldrv file read & write support
 namespace {
@@ -582,139 +584,72 @@ std::string element::to_string(bool formatted) const
 }
 
 /// get_value APIs
-int8_t        element::get_value(const char& value)
-{
-    if (is_good())
-        return atoi(get_value("").c_str());
-    return value;
-}
-int16_t       element::get_value(const short& value)
-{
-    if (is_good())
-        return atoi(get_value("").c_str());
-    return value;
-}
-int32_t       element::get_value(const int& value)
-{
-    if (is_good())
-        return atoi(get_value("").c_str());
-    return value;
-}
-int64_t       element::get_value(const long long& value)
-{
-    if (is_good())
-        return atoll(get_value("").c_str());
-    return value;
+#define _IMPL_GETVAL(type,s2i) \
+type   element::get_value(type value, int radix) const \
+{ \
+    if (is_good()) { \
+        return s2i(get_value(vstring()).c_str(), nullptr, radix); \
+    } \
+    return value; \
 }
 
-uint8_t       element::get_value(const unsigned char& value)
-{
-    if (is_good())
-        return strtoul(get_value("").c_str(), nullptr, 10);
-    return value;
-}
-uint16_t      element::get_value(const unsigned short& value)
-{
-    if (is_good())
-        return strtoul(get_value("").c_str(), nullptr, 10);
-    return value;
-}
-uint32_t      element::get_value(const unsigned int& value)
-{
-    if (is_good())
-        return strtoul(get_value("").c_str(), nullptr, 10);
-    return value;
-}
-uint64_t      element::get_value(const unsigned long long& value)
-{
-    if (is_good())
-        return strtoull(get_value("").c_str(), nullptr, 10);
-    return value;
-}
+_IMPL_GETVAL(bool, strtol)
 
-float         element::get_value(const float& value)
+_IMPL_GETVAL(int8_t, strtol)
+_IMPL_GETVAL(int16_t, strtol)
+_IMPL_GETVAL(int32_t, strtol)
+_IMPL_GETVAL(int64_t, strtoll)
+
+_IMPL_GETVAL(uint8_t, strtoul)
+_IMPL_GETVAL(uint16_t, strtoul)
+_IMPL_GETVAL(uint32_t, strtoul)
+_IMPL_GETVAL(uint64_t, strtoull)
+
+float         element::get_value( float value) const
 {
     if (is_good())
-        return strtof(get_value("").c_str(), nullptr);
+        return strtof(get_value(vstring()).c_str(), nullptr);
     return value;
 }
-double        element::get_value(const double& value)
+double        element::get_value( double value) const
 {
     if (is_good())
-        return strtod(get_value("").c_str(), nullptr);
+        return strtod(get_value(vstring()).c_str(), nullptr);
     return value;
 }
 
 /// get_attribute_value APIs
-int8_t        element::get_attribute_value(const vstring& name, const char& value)
-{
-    if (has_attribute(name)) {
-        return atoi(get_attribute_value(name, "").c_str());
-    }
-    return value;
+#define _IMPL_GET_ATTRIVAL(type,s2i) \
+type  element::get_attribute_value(const vstring& name, type value, int radix) const \
+{ \
+    if (has_attribute(name)) { \
+        return s2i(get_attribute_value(name, vstring()).c_str(), nullptr, radix); \
+    } \
+    return value; \
 }
-int16_t       element::get_attribute_value(const vstring& name, const short& value)
-{
-    if (has_attribute(name)) {
-        return atoi(get_attribute_value(name, "").c_str());
-    }
-    return value;
-}
-int32_t       element::get_attribute_value(const vstring& name, const int& value)
-{
-    if (has_attribute(name)) {
-        return atoi(get_attribute_value(name, "").c_str());
-    }
-    return value;
-}
-int64_t       element::get_attribute_value(const vstring& name, const long long& value)
-{
-    if (has_attribute(name)) {
-        return atoll(get_attribute_value(name, "").c_str());
-    }
-    return value;
-}
+_IMPL_GET_ATTRIVAL(bool, strtol)
 
-uint8_t       element::get_attribute_value(const vstring& name, const unsigned char& value)
-{
-    if (has_attribute(name)) {
-        return strtoul(get_attribute_value(name, "").c_str(), nullptr, 10);
-    }
-    return value;
-}
-uint16_t      element::get_attribute_value(const vstring& name, const unsigned short& value)
-{
-    if (has_attribute(name)) {
-        return strtoul(get_attribute_value(name, "").c_str(), nullptr, 10);
-    }
-    return value;
-}
-uint32_t      element::get_attribute_value(const vstring& name, const unsigned int& value)
-{
-    if (has_attribute(name)) {
-        return strtoul(get_attribute_value(name, "").c_str(), nullptr, 10);
-    }
-    return value;
-}
-uint64_t      element::get_attribute_value(const vstring& name, const unsigned long long& value)
-{
-    if (has_attribute(name)) {
-        return strtoull(get_attribute_value(name, "").c_str(), nullptr, 10);
-    }
-    return value;
-}
+_IMPL_GET_ATTRIVAL(int8_t, strtol)
+_IMPL_GET_ATTRIVAL(int16_t, strtol)
+_IMPL_GET_ATTRIVAL(int32_t, strtol)
+_IMPL_GET_ATTRIVAL(int64_t, strtoll)
 
-float         element::get_attribute_value(const vstring& name, const float& value)
+_IMPL_GET_ATTRIVAL(uint8_t, strtoul)
+_IMPL_GET_ATTRIVAL(uint16_t, strtoul)
+_IMPL_GET_ATTRIVAL(uint32_t, strtoul)
+_IMPL_GET_ATTRIVAL(uint64_t, strtoull)
+
+float         element::get_attribute_value(const vstring& name, float value) const
 {
     if (has_attribute(name)) {
-        return strtof(get_attribute_value(name, "").c_str(), nullptr);
+        return strtof(get_attribute_value(name, vstring()).c_str(), nullptr);
     }
     return value;
 }
-double        element::get_attribute_value(const vstring& name, const double& value)
+double        element::get_attribute_value(const vstring& name, double value) const
 {
     if (has_attribute(name)) {
-        return strtod(get_attribute_value(name, "").c_str(), nullptr);
+        return strtod(get_attribute_value(name, vstring()).c_str(), nullptr);
     }
     return value;
 }
@@ -724,7 +659,7 @@ void xmldrv::element::set_value(const type & value) \
 { \
     char svalue[capacity]; \
     auto n = sprintf(svalue, fmt, value); \
-    set_value(vstring(svalue, n)); \
+    set_value(vstring(svalue, n).set_reliable(false)); \
 }
 
 _IMPL_SETVAL(char, "%d", 8)
@@ -755,7 +690,7 @@ void xmldrv::element::set_attribute_value(const vstring & name, const type & val
 { \
     char svalue[capacity]; \
     int n = sprintf(svalue, fmt, value); \
-    set_attribute_value(name, vstring(svalue, n)); \
+    set_attribute_value(name, vstring(svalue, n).set_reliable(false)); \
 }
 
 _IMPL_SET_ATTRI_VAL(char, "%d", 8)
