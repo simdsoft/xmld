@@ -10,7 +10,7 @@
 #define _POLITEDEF_H_
 
 #ifndef _POLITE_VERSION
-#define _POLITE_VERSION "1.0.1"
+#define _POLITE_VERSION "1.0.16"
 #endif
 
 #if defined(_MSC_VER)
