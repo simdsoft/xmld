@@ -116,7 +116,7 @@ element element::operator[](int index) const
 
 element element::operator[](const vstring& name) const
 {
-    auto child = this->get_child(name.c_str());
+    auto child = this->get_child(name);
     if (child.is_valid())
     {
         return child;
@@ -124,7 +124,7 @@ element element::operator[](const vstring& name) const
     return this->add_child(name);
 }
 
-element element::get_child(const char* name, int index) const
+element element::get_child(const vstring& name, int index) const
 {
     auto ptr = *this;
     __xml4wts_algo_cond(ptr,
@@ -153,19 +153,9 @@ void element::remove_child(int index)
     this->get_child(index).remove_self();
 }
 
-void element::remove_child(const char* name, int index)
+void element::remove_child(const vstring& name, int index)
 {
     this->get_child(name, index).remove_self();
-}
-
-vstring element::get_value(const std::string& default_value) const
-{
-    return this->get_value(default_value.c_str());
-}
-
-vstring element::get_attribute_value(const char* name, const std::string& default_value) const
-{
-    return this->get_attribute_value(name, default_value.c_str());
 }
 
 //void element::set_value(const std::string& value)
@@ -297,7 +287,7 @@ vstring element::get_name(void) const
     return "null";
 }
 
-vstring element::get_value(const char* default_value) const
+vstring element::get_value(const vstring& default_value) const
 {
     if (is_valid()) {
         return vstring(detail(_Mynode)->value(), detail(_Mynode)->value_size());
@@ -309,11 +299,11 @@ vstring element::get_value(const char* default_value) const
     return default_value;
 }
 
-vstring element::get_attribute_value(const char* name, const char* default_value) const
+vstring element::get_attribute_value(const vstring& name, const vstring& default_value) const
 {
     if (is_valid())
     {
-        auto attr = detail(_Mynode)->first_attribute(name);
+        auto attr = detail(_Mynode)->first_attribute(name.c_str(), name.size());
         
         if (attr != nullptr) {
             return vstring(attr->value(), attr->value_size());
