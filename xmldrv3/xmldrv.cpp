@@ -117,7 +117,7 @@ element element::operator[](int index) const
 element element::operator[](const vstring& name) const
 {
     auto child = this->get_child(name);
-    if (child.is_valid())
+    if (child.is_good())
     {
         return child;
     }
@@ -210,7 +210,7 @@ inline bool is_element(xml4wNodePtr ptr)
 
 element element::add_child(const element& e) const
 {
-    if (is_valid() && e.is_valid()) {
+    if (is_good() && e.is_good()) {
         auto clone = detail(e)->document() != nullptr;
         if (!clone) {
             detail(_Mynode)->append_node(detail(e));
@@ -227,7 +227,7 @@ element element::add_child(const element& e) const
 
 element element::clone(void) const
 {
-    if (is_valid())
+    if (is_good())
     {
         auto palloc = detail(_Mynode)->get_allocator();
         if (palloc != nullptr)
@@ -238,7 +238,7 @@ element element::clone(void) const
 
 element element::get_parent(void) const
 {
-    if (is_valid())
+    if (is_good())
         return element(detail(_Mynode)->parent());
     return element(nullptr);
 }
@@ -279,9 +279,14 @@ element element::get_next_sibling(void) const
     return (element)ptr;
 }
 
+bool element::has_attribute(const vstring& name) const
+{
+    return is_good() && detail(_Mynode)->first_attribute(name.c_str(), name.size()) != nullptr;
+}
+
 vstring element::get_name(void) const
 {
-    if (is_valid()) {
+    if (is_good()) {
         return vstring(detail(_Mynode)->name(), detail(_Mynode)->name_size());
     }
     return "null";
@@ -289,7 +294,7 @@ vstring element::get_name(void) const
 
 vstring element::get_value(const vstring& default_value) const
 {
-    if (is_valid()) {
+    if (is_good()) {
         return vstring(detail(_Mynode)->value(), detail(_Mynode)->value_size());
     }
 
@@ -301,7 +306,7 @@ vstring element::get_value(const vstring& default_value) const
 
 vstring element::get_attribute_value(const vstring& name, const vstring& default_value) const
 {
-    if (is_valid())
+    if (is_good())
     {
         auto attr = detail(_Mynode)->first_attribute(name.c_str(), name.size());
 
@@ -318,7 +323,7 @@ vstring element::get_attribute_value(const vstring& name, const vstring& default
 
 void*  element::first_attribute() const
 {
-    if (is_valid())
+    if (is_good())
     {
         auto attr = detail(_Mynode)->first_attribute();
 
@@ -357,7 +362,7 @@ vstring element::value_of_attr(void* attrv)
 
 void element::set_value(const vstring& value)
 {
-    if (is_valid())
+    if (is_good())
     {
         auto parent = detail(_Mynode)->parent();
         auto palloc = detail(_Mynode)->get_allocator();
@@ -417,7 +422,7 @@ void element::set_attribute_value(const vstring& name, const cocos2d::Size& valu
 
 cocos2d::Color3B element::get_attribute_value(const vstring& name, const cocos2d::Color3B& default_value) const
 {
-    if (is_valid())
+    if (is_good())
     {
         auto attr = detail(_Mynode)->first_attribute(name.c_str(), name.size());
         if (attr != nullptr) {
@@ -430,7 +435,7 @@ cocos2d::Color3B element::get_attribute_value(const vstring& name, const cocos2d
 }
 cocos2d::Color4B element::get_attribute_value(const vstring& name, const cocos2d::Color4B& default_value) const
 {
-    if (is_valid())
+    if (is_good())
     {
         auto attr = detail(_Mynode)->first_attribute(name.c_str(), name.size());
         if (attr != nullptr) {
@@ -443,7 +448,7 @@ cocos2d::Color4B element::get_attribute_value(const vstring& name, const cocos2d
 }
 cocos2d::Color4F element::get_attribute_value(const vstring& name, const cocos2d::Color4F& default_value) const
 {
-    if (is_valid())
+    if (is_good())
     {
         auto attr = detail(_Mynode)->first_attribute(name.c_str(), name.size());
         if (attr != nullptr) {
@@ -456,7 +461,7 @@ cocos2d::Color4F element::get_attribute_value(const vstring& name, const cocos2d
 }
 cocos2d::Rect    element::get_attribute_value(const vstring& name, const cocos2d::Rect& default_value) const
 {
-    if (is_valid())
+    if (is_good())
     {
         auto attr = detail(_Mynode)->first_attribute(name.c_str(), name.size());
         if (attr != nullptr) {
@@ -469,7 +474,7 @@ cocos2d::Rect    element::get_attribute_value(const vstring& name, const cocos2d
 }
 cocos2d::Vec2    element::get_attribute_value(const vstring& name, const cocos2d::Vec2& default_value) const
 {
-    if (is_valid())
+    if (is_good())
     {
         auto attr = detail(_Mynode)->first_attribute(name.c_str(), name.size());
         if (attr != nullptr) {
@@ -482,7 +487,7 @@ cocos2d::Vec2    element::get_attribute_value(const vstring& name, const cocos2d
 }
 cocos2d::Size    element::get_attribute_value(const vstring& name, const cocos2d::Size& default_value) const
 {
-    if (is_valid())
+    if (is_good())
     {
         auto attr = detail(_Mynode)->first_attribute(name.c_str(), name.size());
         if (attr != nullptr) {
@@ -499,7 +504,7 @@ cocos2d::Size    element::get_attribute_value(const vstring& name, const cocos2d
 
 void element::set_attribute_value(const vstring& name, const vstring& value)
 { // pitfall: string-literal
-    if (is_valid()) {
+    if (is_good()) {
         auto where = detail(_Mynode)->first_attribute(name.c_str(), name.size());
         auto palloc = detail(_Mynode)->get_allocator();
         if (where) {
@@ -517,7 +522,7 @@ void element::set_attribute_value(const vstring& name, const vstring& value)
 
 element element::add_child(const vstring& name, const vstring& value /* = nullptr */) const
 {
-    if (is_valid()) {
+    if (is_good()) {
         auto palloc = detail(_Mynode)->get_allocator();
         auto newnode = palloc->allocate_node(rapidxml::node_type::node_element,
             adapt_vstring(name, palloc),
@@ -531,14 +536,14 @@ element element::add_child(const vstring& name, const vstring& value /* = nullpt
 
 void element::remove_children(void)
 {
-    if (is_valid()) {
+    if (is_good()) {
         detail(_Mynode)->remove_all_nodes();
     }
 }
 
 void element::remove_children(const vstring& name)
 {
-    if (is_valid())
+    if (is_good())
     {
         auto first = detail(_Mynode)->first_node();
         decltype(first) next = nullptr;
@@ -560,7 +565,7 @@ void element::remove_children(const vstring& name)
 
 void element::remove_self(void)
 {
-    if (is_valid()) {
+    if (is_good()) {
         detail(_Mynode)->parent()->remove_node(detail(_Mynode));
         _Mynode = nullptr;
     }
@@ -568,12 +573,150 @@ void element::remove_self(void)
 
 std::string element::to_string(bool formatted) const
 {
-    if (is_valid()) {
+    if (is_good()) {
         std::string text;
         rapidxml::print(std::back_inserter(text), *detail(_Mynode), !formatted ? rapidxml::print_no_indenting : 0);
         return std::move(text);
     }
     return "";
+}
+
+/// get_value APIs
+int8_t        element::get_value(const char& value)
+{
+    if (is_good())
+        return atoi(get_value("").c_str());
+    return value;
+}
+int16_t       element::get_value(const short& value)
+{
+    if (is_good())
+        return atoi(get_value("").c_str());
+    return value;
+}
+int32_t       element::get_value(const int& value)
+{
+    if (is_good())
+        return atoi(get_value("").c_str());
+    return value;
+}
+int64_t       element::get_value(const long long& value)
+{
+    if (is_good())
+        return atoll(get_value("").c_str());
+    return value;
+}
+
+uint8_t       element::get_value(const unsigned char& value)
+{
+    if (is_good())
+        return strtoul(get_value("").c_str(), nullptr, 10);
+    return value;
+}
+uint16_t      element::get_value(const unsigned short& value)
+{
+    if (is_good())
+        return strtoul(get_value("").c_str(), nullptr, 10);
+    return value;
+}
+uint32_t      element::get_value(const unsigned int& value)
+{
+    if (is_good())
+        return strtoul(get_value("").c_str(), nullptr, 10);
+    return value;
+}
+uint64_t      element::get_value(const unsigned long long& value)
+{
+    if (is_good())
+        return strtoull(get_value("").c_str(), nullptr, 10);
+    return value;
+}
+
+float         element::get_value(const float& value)
+{
+    if (is_good())
+        return strtof(get_value("").c_str(), nullptr);
+    return value;
+}
+double        element::get_value(const double& value)
+{
+    if (is_good())
+        return strtod(get_value("").c_str(), nullptr);
+    return value;
+}
+
+/// get_attribute_value APIs
+int8_t        element::get_attribute_value(const vstring& name, const char& value)
+{
+    if (has_attribute(name)) {
+        return atoi(get_attribute_value(name, "").c_str());
+    }
+    return value;
+}
+int16_t       element::get_attribute_value(const vstring& name, const short& value)
+{
+    if (has_attribute(name)) {
+        return atoi(get_attribute_value(name, "").c_str());
+    }
+    return value;
+}
+int32_t       element::get_attribute_value(const vstring& name, const int& value)
+{
+    if (has_attribute(name)) {
+        return atoi(get_attribute_value(name, "").c_str());
+    }
+    return value;
+}
+int64_t       element::get_attribute_value(const vstring& name, const long long& value)
+{
+    if (has_attribute(name)) {
+        return atoll(get_attribute_value(name, "").c_str());
+    }
+    return value;
+}
+
+uint8_t       element::get_attribute_value(const vstring& name, const unsigned char& value)
+{
+    if (has_attribute(name)) {
+        return strtoul(get_attribute_value(name, "").c_str(), nullptr, 10);
+    }
+    return value;
+}
+uint16_t      element::get_attribute_value(const vstring& name, const unsigned short& value)
+{
+    if (has_attribute(name)) {
+        return strtoul(get_attribute_value(name, "").c_str(), nullptr, 10);
+    }
+    return value;
+}
+uint32_t      element::get_attribute_value(const vstring& name, const unsigned int& value)
+{
+    if (has_attribute(name)) {
+        return strtoul(get_attribute_value(name, "").c_str(), nullptr, 10);
+    }
+    return value;
+}
+uint64_t      element::get_attribute_value(const vstring& name, const unsigned long long& value)
+{
+    if (has_attribute(name)) {
+        return strtoull(get_attribute_value(name, "").c_str(), nullptr, 10);
+    }
+    return value;
+}
+
+float         element::get_attribute_value(const vstring& name, const float& value)
+{
+    if (has_attribute(name)) {
+        return strtof(get_attribute_value(name, "").c_str(), nullptr);
+    }
+    return value;
+}
+double        element::get_attribute_value(const vstring& name, const double& value)
+{
+    if (has_attribute(name)) {
+        return strtod(get_attribute_value(name, "").c_str(), nullptr);
+    }
+    return value;
 }
 
 #define _IMPL_SETVAL(type, fmt, capacity) \
@@ -859,7 +1002,7 @@ inline tinyxml2::XMLNode* detail(const element& elem)
 
 element element::clone(void) const
 {
-    if (is_valid())
+    if (is_good())
     {
         return detail(_Mynode)->ShallowClone(detail(_Mynode)->GetDocument());
     }
@@ -868,7 +1011,7 @@ element element::clone(void) const
 
 element element::get_parent(void) const
 {
-    if (is_valid())
+    if (is_good())
     {
         return detail(_Mynode)->Parent();
     }
@@ -877,28 +1020,28 @@ element element::get_parent(void) const
 
 element element::get_first_child(void) const
 {
-    if (is_valid())
+    if (is_good())
         return detail(_Mynode)->FirstChildElement();
     return nullptr;
 }
 
 element element::get_prev_sibling(void) const
 {
-    if (is_valid())
+    if (is_good())
         return detail(_Mynode)->PreviousSiblingElement();
     return nullptr;
 }
 
 element element::get_next_sibling(void) const
 {
-    if (is_valid())
+    if (is_good())
         return detail(_Mynode)->NextSiblingElement();
     return nullptr;
 }
 
 std::string element::get_name(void) const
 {
-    if (is_valid()) {
+    if (is_good()) {
         return dynamic_cast<tinyxml2::XMLElement*>(detail(_Mynode))->Name();
     }
     return "null";
@@ -906,7 +1049,7 @@ std::string element::get_name(void) const
 
 std::string element::get_value(const char* default_value) const
 {
-    if (is_valid()) {
+    if (is_good()) {
 
         const char* text = detail(_Mynode)->ToElement()->GetText();
         if (text != nullptr) {
@@ -922,7 +1065,7 @@ std::string element::get_value(const char* default_value) const
 
 std::string element::get_attribute_value(const char* name, const char* default_value) const
 {
-    if (is_valid())
+    if (is_good())
     {
         const char* attr_value = dynamic_cast<tinyxml2::XMLElement*>(detail(_Mynode))->Attribute(name);
         if (attr_value != nullptr) {
@@ -938,7 +1081,7 @@ std::string element::get_attribute_value(const char* name, const char* default_v
 
 void element::set_value(const char* value)
 {
-    if (is_valid())
+    if (is_good())
     {
         do { if (detail(_Mynode)->FirstChild() != nullptr) { detail(_Mynode)->FirstChild()->SetValue(value); } else { detail(_Mynode)->InsertFirstChild(detail(_Mynode)->GetDocument()->NewText(value)); } } while (false);
     }
@@ -946,14 +1089,14 @@ void element::set_value(const char* value)
 
 void element::set_attribute_value(const char* name, const char* value)
 {
-    if (is_valid()) {
+    if (is_good()) {
         detail(_Mynode)->ToElement()->SetAttribute(name, value);
     }
 }
 
 void element::remove_children(void)
 {
-    if (is_valid()) {
+    if (is_good()) {
         detail(_Mynode)->DeleteChildren();
     }
 }
@@ -971,7 +1114,7 @@ void element::remove_children(const char* name)
 
 void element::remove_self(void)
 {
-    if (is_valid()) {
+    if (is_good()) {
         detail(_Mynode)->GetDocument()->DeleteNode(detail(_Mynode));
         _Mynode = nullptr;
     }
@@ -979,7 +1122,7 @@ void element::remove_self(void)
 
 std::string element::to_string(bool formatted) const
 {
-    if (is_valid()) {
+    if (is_good()) {
         detail(_Mynode)->ToElement()->ToText()->Value();
         return "";
     }
@@ -988,7 +1131,7 @@ std::string element::to_string(bool formatted) const
 
 element element::add_child(const char* name, const char* value /* = nullptr */) const
 {
-    if (is_valid())
+    if (is_good())
     {
         auto doc = detail(_Mynode)->GetDocument();
         if (doc) {
@@ -1121,7 +1264,7 @@ element element::clone(void) const
 
 element element::get_parent(void) const
 {
-    if (is_valid())
+    if (is_good())
         return simplify(detail(_Mynode).parent());
     return nullptr;
 }
@@ -1164,7 +1307,7 @@ element element::get_next_sibling(void) const
 
 std::string element::get_name(void) const
 {
-    if (is_valid()) {
+    if (is_good()) {
         return detail(_Mynode).name();
     }
     return "null";
@@ -1172,7 +1315,7 @@ std::string element::get_name(void) const
 
 std::string element::get_value(const char* default_value) const
 {
-    if (is_valid())
+    if (is_good())
     {
         return detail(_Mynode).text().as_string();
     }
@@ -1185,7 +1328,7 @@ std::string element::get_value(const char* default_value) const
 
 std::string element::get_attribute_value(const char* name, const char* default_value) const
 {
-    if (is_valid())
+    if (is_good())
     {
         // real detail(_Mynode) pointer is internal struct pointer
 
@@ -1204,13 +1347,13 @@ std::string element::get_attribute_value(const char* name, const char* default_v
 
 void element::set_value(const char* value)
 {
-    if (is_valid())
+    if (is_good())
         detail(_Mynode).set_value(value);
 }
 
 void element::set_attribute_value(const char* name, const char* value)
 {
-    if (is_valid()) {
+    if (is_good()) {
         auto attrib = detail(_Mynode).attribute(name);
         if (!attrib.empty())
             attrib.set_value(value);
@@ -1226,13 +1369,13 @@ void element::remove_children(void)
 
 void element::remove_children(const char* name)
 {
-    if (is_valid())
+    if (is_good())
         detail(_Mynode).remove_child(name);
 }
 
 void element::remove_self(void)
 {
-    if (is_valid()) {
+    if (is_good()) {
         auto self = detail(_Mynode);
         auto parent = self.parent();
         if (!parent.empty())
@@ -1243,7 +1386,7 @@ void element::remove_self(void)
 
 std::string element::to_string(bool formatted) const
 {
-    if (is_valid()) {
+    if (is_good()) {
         std::ostringstream oss;
         detail(_Mynode).print(oss, "  ", formatted ? pugi::format_indent : pugi::format_raw);
         return oss.str();
@@ -1253,7 +1396,7 @@ std::string element::to_string(bool formatted) const
 
 element element::add_child(const char* name, const char* value) const
 {
-    if (is_valid()) {
+    if (is_good()) {
         auto newe = detail(_Mynode).append_child(name);
         newe.set_value(value);
         return simplify(newe);
@@ -1385,7 +1528,7 @@ inline bool is_element(xml4wNodePtr ptr)
 
 element element::clone(void) const
 {
-    if (is_valid())
+    if (is_good())
     {
         return xmlCopyNode(detail(_Mynode), 1);
     }
@@ -1394,7 +1537,7 @@ element element::clone(void) const
 
 element element::get_parent(void) const
 {
-    if (is_valid())
+    if (is_good())
         return detail(_Mynode)->parent;
     return nullptr;
 }
@@ -1437,7 +1580,7 @@ element element::get_first_child(void) const
 
 std::string element::get_name(void) const
 {
-    if (is_valid()) {
+    if (is_good()) {
         return (const char*)detail(_Mynode)->name;
     }
     return "null";
@@ -1445,7 +1588,7 @@ std::string element::get_name(void) const
 
 std::string element::get_value(const char* default_value) const
 {
-    if (is_valid()) {
+    if (is_good()) {
         pod_ptr<char>::type value((char*)xmlNodeGetContent(detail(_Mynode)));
         return value.get();
     }
@@ -1458,7 +1601,7 @@ std::string element::get_value(const char* default_value) const
 
 std::string element::get_attribute_value(const char* name, const char* default_value) const
 {
-    if (is_valid())
+    if (is_good())
     {
         pod_ptr<xmlChar>::type value(xmlGetProp(detail(_Mynode), BAD_CAST name));
         if (value != nullptr)
@@ -1475,7 +1618,7 @@ std::string element::get_attribute_value(const char* name, const char* default_v
 
 void element::set_value(const char* value)
 {
-    if (is_valid())
+    if (is_good())
     {
         xmlNodeSetContent(detail(_Mynode), BAD_CAST value);
     }
@@ -1483,14 +1626,14 @@ void element::set_value(const char* value)
 
 void element::set_attribute_value(const char* name, const char* value)
 {
-    if (is_valid()) {
+    if (is_good()) {
         xmlSetProp(detail(_Mynode), BAD_CAST name, BAD_CAST value);
     }
 }
 
 //element element::add_child(const element& e) const
 //{
-//    if (is_valid() && e.is_valid()) {
+//    if (is_good() && e.is_good()) {
 //        xmlAddChild(detail(_Mynode), detail(e));
 //        return e;
 //    }
@@ -1499,7 +1642,7 @@ void element::set_attribute_value(const char* name, const char* value)
 
 void element::remove_children(void)
 {
-    if (is_valid()) {
+    if (is_good()) {
         // xmlDOMWrapRemoveNode
         // detail(_Mynode)->remove_all_nodes();
     }
@@ -1507,7 +1650,7 @@ void element::remove_children(void)
 
 void element::remove_children(const char* name)
 {
-    if (is_valid())
+    if (is_good())
     {
         /*auto first = detail(_Mynode)->first_node();
         decltype(first) next = nullptr;
@@ -1529,7 +1672,7 @@ void element::remove_children(const char* name)
 
 void element::remove_self(void)
 {
-    if (is_valid()) {
+    if (is_good()) {
         xmlDOMWrapRemoveNode(nullptr, detail(_Mynode)->doc, detail(_Mynode), 0);
         _Mynode = nullptr;
     }
@@ -1537,7 +1680,7 @@ void element::remove_self(void)
 
 std::string element::to_string(bool formatted) const
 {
-    if (is_valid()) {
+    if (is_good()) {
         simple_ptr<xmlBuffer, xmlBufferFree> buf(xmlBufferCreate());
         xmlNodeDump(buf, detail(_Mynode)->doc, detail(_Mynode), 1, formatted ? 1 : 0);
         return std::string((const char*)buf->content);
@@ -1547,7 +1690,7 @@ std::string element::to_string(bool formatted) const
 
 element element::add_child(const char* name, const char* value /* = nullptr */) const
 {
-    if (is_valid()) {
+    if (is_good()) {
         auto newnode = xmlNewNode(nullptr, BAD_CAST name);
         xmlNodeSetContent(newnode, BAD_CAST value);
         xmlAddChild(detail(_Mynode), newnode);
@@ -1780,7 +1923,7 @@ void _xml4w_serialize(xercesc::DOMNode* _TheNode, XMLFormatTarget& _Target, bool
 
 element element::clone(void) const
 {
-    if (is_valid())
+    if (is_good())
     {
         return detail(_Mynode)->cloneNode(true);
     }
@@ -1789,7 +1932,7 @@ element element::clone(void) const
 
 element element::get_parent(void) const
 {
-    if (is_valid())
+    if (is_good())
     {
         return detail(_Mynode)->getParentNode();
     }
@@ -1798,7 +1941,7 @@ element element::get_parent(void) const
 
 element element::get_first_child(void) const
 {
-    if (is_valid()) {
+    if (is_good()) {
         auto ptr = dynamic_cast<DOMElement*>(detail(_Mynode));
         if (ptr != nullptr)
             return ptr->getFirstElementChild();
@@ -1808,7 +1951,7 @@ element element::get_first_child(void) const
 
 element element::get_prev_sibling(void) const
 {
-    if (is_valid()) {
+    if (is_good()) {
         auto ptr = dynamic_cast<DOMElement*>(detail(_Mynode));
         if (ptr != nullptr)
             return ptr->getPreviousElementSibling();
@@ -1818,7 +1961,7 @@ element element::get_prev_sibling(void) const
 
 element element::get_next_sibling(void) const
 {
-    if (is_valid()) {
+    if (is_good()) {
         auto ptr = dynamic_cast<DOMElement*>(detail(_Mynode));
         if (ptr != nullptr)
             return ptr->getNextElementSibling();
@@ -1828,7 +1971,7 @@ element element::get_next_sibling(void) const
 
 std::string element::get_name(void) const
 {
-    if (is_valid()) {
+    if (is_good()) {
         return _xml4w_transcode(detail(_Mynode)->getNodeName());
     }
     return "null";
@@ -1836,7 +1979,7 @@ std::string element::get_name(void) const
 
 std::string element::get_value(const char* default_value) const
 {
-    if (is_valid()) {
+    if (is_good()) {
 
         return _xml4w_transcode(detail(_Mynode)->getTextContent());
     }
@@ -1849,7 +1992,7 @@ std::string element::get_value(const char* default_value) const
 
 std::string element::get_attribute_value(const char* name, const char* default_value) const
 {
-    if (is_valid())
+    if (is_good())
     {
         auto elem = dynamic_cast<xercesc::DOMElement*>(detail(_Mynode));
         if (elem->hasAttribute(_xml4w_transcode(name).c_str()))
@@ -1866,7 +2009,7 @@ std::string element::get_attribute_value(const char* name, const char* default_v
 
 void element::set_value(const char* value)
 {
-    if (is_valid())
+    if (is_good())
     {
         auto theval = XMLString::transcode(value);
         if (theval != nullptr) {
@@ -1878,7 +2021,7 @@ void element::set_value(const char* value)
 
 void element::set_attribute_value(const char* name, const char* value)
 {
-    if (is_valid()) {
+    if (is_good()) {
 
         auto n = XMLString::transcode(name);
         if (_IsNull(n))
@@ -1899,7 +2042,7 @@ void element::set_attribute_value(const char* name, const char* value)
 
 void element::remove_children(void)
 {
-    if (is_valid()) {
+    if (is_good()) {
         auto current = dynamic_cast<xercesc::DOMElement*>(detail(_Mynode));
         auto ptr = current->getFirstElementChild();
         xercesc::DOMNode* removing = nullptr;
@@ -1914,7 +2057,7 @@ void element::remove_children(void)
 
 void element::remove_children(const char* name)
 {
-    if (is_valid()) {
+    if (is_good()) {
         auto current = dynamic_cast<xercesc::DOMElement*>(detail(_Mynode));
         auto ptr = current->getFirstElementChild();
         xercesc::DOMNode* removing = nullptr;
@@ -1930,7 +2073,7 @@ void element::remove_children(const char* name)
 
 void element::remove_self(void)
 {
-    if (is_valid()) {
+    if (is_good()) {
         detail(_Mynode)->getParentNode()->removeChild(detail(_Mynode));
         _Mynode = nullptr;
     }
@@ -1938,7 +2081,7 @@ void element::remove_self(void)
 
 std::string element::to_string(bool formatted) const
 {
-    if (is_valid()) {
+    if (is_good()) {
         MemBufFormatTarget target;
         _xml4w_serialize(detail(_Mynode), target, formatted);
         return std::string((const char*)target.getRawBuffer());
@@ -1948,7 +2091,7 @@ std::string element::to_string(bool formatted) const
 
 element element::add_child(const char* name, const char* value /* = nullptr */) const
 {
-    if (is_valid())
+    if (is_good())
     {
         auto doc = detail(_Mynode)->getOwnerDocument();
         if (doc) {

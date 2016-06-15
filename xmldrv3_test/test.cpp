@@ -3,7 +3,7 @@
 
 void main()
 {
-    unmanaged_string str("23");
+    unmanaged_string str = "23";
 
     str.assign("fdsfsdjfkfkdsf");
 

@@ -11,7 +11,7 @@
 *     or _USING_RAPIDXML                                                      *
 *                                                                             *
 *     Version history:                                                        *
-*       3.9.3: element::is_good --> element::is_valid                         *
+*       3.9.3: element::is_good --> element::is_good                         *
 *              add operator[](const char* name) interface.                    *
 *       3.9.2: change module name 'xml4wrapper' --> 'xmldrv'                  *
 *              remove 3rd header dependency.                                  *
@@ -165,6 +165,8 @@ namespace xmldrv {
 
         vstring         get_attribute_value(const vstring& name, const vstring& = "") const;
 
+        bool            has_attribute(const vstring& name) const;
+
         element         get_parent(void) const;
         element         get_prev_sibling(void) const;
         element         get_next_sibling(void) const;
@@ -189,13 +191,33 @@ namespace xmldrv {
 
         std::string     to_string(bool formatted = false) const;
 
-        //  Function TEMPLATEs
-        template<typename _Ty>
-        _Ty             get_value(const _Ty& default_value = _Ty()) const;
+        /// get_value APIs
+        int8_t          get_value(const char& value = 0);
+        int16_t         get_value(const short& value = 0);
+        int32_t         get_value(const int& value = 0);
+        int64_t         get_value(const long long& value = 0);
 
+        uint8_t         get_value(const unsigned char& value = 0);
+        uint16_t        get_value(const unsigned short& value = 0);
+        uint32_t        get_value(const unsigned int& value = 0);
+        uint64_t        get_value(const unsigned long long& value = 0);
 
-        template<typename _Ty>
-        _Ty             get_attribute_value(const char* name, const _Ty& default_value = _Ty()) const;
+        float           get_value(const float& value = 0);
+        double          get_value(const double& value = 0);
+
+        /// get_attribute_value APIs
+        int8_t          get_attribute_value(const vstring& name, const char& value = 0);
+        int16_t         get_attribute_value(const vstring& name, const short& value = 0);
+        int32_t         get_attribute_value(const vstring& name, const int& value = 0);
+        int64_t         get_attribute_value(const vstring& name, const long long& value = 0);
+
+        uint8_t         get_attribute_value(const vstring& name, const unsigned char& value = 0);
+        uint16_t        get_attribute_value(const vstring& name, const unsigned short& value = 0);
+        uint32_t        get_attribute_value(const vstring& name, const unsigned int& value = 0);
+        uint64_t        get_attribute_value(const vstring& name, const unsigned long long& value = 0);
+
+        float           get_attribute_value(const vstring& name, const float& value = 0);
+        double          get_attribute_value(const vstring& name, const double& value = 0);
 
         /// set_value APIs
         void            set_value(const char& value);
@@ -249,7 +271,7 @@ namespace xmldrv {
         static vstring   name_of_attr(void* attr);
         static vstring   value_of_attr(void* attr);
 
-        bool            is_valid(void) const { return _Mynode != nullptr; }
+        bool            is_good(void) const { return _Mynode != nullptr; }
         operator xml4wNodePtr(void) { return _Mynode; }
         operator xml4wNodePtr(void) const { return _Mynode; }
 
@@ -268,10 +290,6 @@ namespace xmldrv {
         cocos2d::Rect    get_attribute_value(const vstring& name, const cocos2d::Rect& default_value = cocos2d::Rect::ZERO) const;
         cocos2d::Vec2    get_attribute_value(const vstring& name, const cocos2d::Vec2& default_value = cocos2d::Vec2::ZERO) const;
         cocos2d::Size    get_attribute_value(const vstring& name, const cocos2d::Size& default_value = cocos2d::Size::ZERO) const;
-        /*template<> cocos2d::Color3B get_attribute_value<cocos2d::Color3B>(const char* name, const cocos2d::Color3B& default_value) const;
-        template<> cocos2d::Color4B get_attribute_value<cocos2d::Color4B>(const char* name, const cocos2d::Color4B& default_value) const;
-        template<> cocos2d::Color4F get_attribute_value<cocos2d::Color4F>(const char* name, const cocos2d::Color4F& default_value) const;
-        template<> cocos2d::Rect    get_attribute_value<cocos2d::Rect>(const char* name, const cocos2d::Rect& default_value) const;*/
 #endif
 
     private:
@@ -414,8 +432,6 @@ namespace xmldrv {
         void                xpath_free_result(xml4wXPathResultPtr) const;
 
     private:
-
-    private:
         xml4wDocPtr impl_;
     }; /* CLASS document */
 };
@@ -429,6 +445,6 @@ namespace xml3s = xmldrv;
 
 #endif /* _XMLDRV_H_ */
 /*
-* Copyright (c) 2012-2015 by X.D. Guo  ALL RIGHTS RESERVED.
+* Copyright (c) 2012-2016 by X.D. Guo  ALL RIGHTS RESERVED.
 * Consult your license regarding permissions and restrictions.
 **/

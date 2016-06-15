@@ -17,17 +17,17 @@
 #if defined(_XML4WRAPPER_H_)
 namespace xmldrv {
 
-template<typename _Ty> inline
-_Ty element::get_value(const _Ty& default_value) const
-{
-    return nsc::to_numeric<_Ty>(this->get_value(nsc::to_string(default_value)));
-}
-
-template<typename _Ty> inline
-_Ty element::get_attribute_value(const char* name, const _Ty& default_value) const
-{
-    return nsc::to_numeric<_Ty>(this->get_attribute_value(name, nsc::to_string(default_value)));
-}
+//template<typename _Ty> inline
+//_Ty element::get_value(const _Ty& default_value) const
+//{
+//    return this->get_value(default_value);
+//}
+//
+//template<typename _Ty> inline
+//_Ty element::get_attribute_value(const char* name, const _Ty& default_value) const
+//{
+//    return this->get_attribute_value(name, default_value);
+//}
 
 //template<typename _Ty> inline
 //void element::set_value(const _Ty& value)

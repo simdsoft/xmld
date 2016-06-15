@@ -7,6 +7,7 @@
 #include <memory>
 #include <vector>
 #include "xxfree.h"
+#include "politedef.h"
 
 namespace purelib {
     using namespace gc;
@@ -230,11 +231,15 @@ namespace purelib {
             _Tidy();
         }
 
+        explicit unreal_string(const _Elem* _Ptr)
+        {
+            this->assign(_Ptr);
+        }
+
         template<size_t _Size>
         unreal_string(const _Elem(&_Ptr)[_Size])
         {
             this->assign(_Ptr, _Size - 1);
-            this->_Reliable = 1;
         }
 
         unreal_string(const _Elem* _Ptr, size_t _Length)
@@ -331,21 +336,35 @@ namespace purelib {
             return this->_Reliable;
         }
 
-        void set_reliable(bool reliable)
+        _Myt& set_reliable(bool reliable)
         {
             this->_Reliable = reliable;
+            return *this;
         }
 
-        template<size_t _Size>
-        _Myt& assign(const _Elem(&_Ptr)[_Size])
-        {
+        //template<size_t _Size>
+        //_Myt& assign(const _Elem(&_Ptr)[_Size])
+        //{
+        //    _Tidy();
+
+        //    // shallow copy
+        //    this->_Bx._Const_Ptr = _Ptr;
+        //    this->_Mysize = _Size - 1;
+        //    this->_Reliable = 1;
+
+        //    return *this;
+        //}
+
+        _Myt& assign(const _Elem* _Ptr)
+        { // shallow copy
             _Tidy();
 
-            // shallow copy
-            this->_Bx._Const_Ptr = _Ptr;
-            this->_Mysize = _Size - 1;
-            this->_Reliable = 1;
+            if (_Ptr != nullptr) {
+                this->_Bx._Const_Ptr = _Ptr;
+                this->_Mysize = native_utils::strlen(_Ptr);
 
+                this->_Reliable = 1;
+            }
             return *this;
         }
 
@@ -356,6 +375,8 @@ namespace purelib {
             if (_Ptr != nullptr) {
                 this->_Bx._Const_Ptr = _Ptr;
                 this->_Mysize = _Length;
+
+                this->_Reliable = 1;
             }
             return *this;
         }
@@ -367,6 +388,8 @@ namespace purelib {
             if (_First != nullptr && _First <= _Last) {
                 this->_Bx._Const_Ptr = _First;
                 this->_Mysize = _Last - _First;
+
+                this->_Reliable = 1;
             }
             return *this;
         }
@@ -378,6 +401,8 @@ namespace purelib {
             if (_Ptr != nullptr) {
                 this->_Bx._Ptr = _Ptr;
                 this->_Mysize = native_utils::strlen(_Ptr);
+
+                this->_Reliable = 1;
             }
             return *this;
         }
@@ -389,6 +414,8 @@ namespace purelib {
             if (_Ptr != nullptr) {
                 this->_Bx._Ptr = _Ptr;
                 this->_Mysize = _Length;
+
+                this->_Reliable = 1;
             }
             return *this;
         }
@@ -400,6 +427,8 @@ namespace purelib {
             if (_First != nullptr && _First <= _Last) {
                 this->_Bx._Ptr = _First;
                 this->_Mysize = _Last - _First;
+
+                this->_Reliable = 1;
             }
             return *this;
         }
@@ -431,7 +460,6 @@ namespace purelib {
             static_assert(!_Cleaner::value, "the managed unreal string can't assign to this managed unreal_string object!");
 
             _Tidy();
-
             ::memcpy(this, &_Right, sizeof(*this));
             return *this;
         }
@@ -449,7 +477,6 @@ namespace purelib {
         _Myt& assign(const unreal_string<_OtherElem, _OtherCleaner>& _Right)
         {
             _Tidy();
-
             static_assert(std::is_same<_Elem, _OtherElem>::value, "can't assign unreal string assign, type not same!");
             static_assert(!_Cleaner::value || !_OtherCleaner::value, "the unreal string can't assign to this managed unreal_string object!");
 
@@ -529,6 +556,12 @@ namespace purelib {
         _Myt& operator=(const _Elem *_Ptr)
         {	// assign [_Ptr, <null>)
             return (this->assign(_Ptr));
+        }
+
+        template<size_t _Size>
+        _Myt& operator=(const _Elem(&_Ptr)[_Size])
+        {
+            return (this->assign(_Ptr, _Size - 1));
         }
 
         _Myt& operator=(const std::basic_string<_Elem>& _Right)
@@ -762,7 +795,7 @@ namespace purelib {
             _Elem*       _Ptr;       // managed pointer
                                      //char _Alias[_BUF_SIZE];	// to permit aliasing
         } _Bx;
-        
+
         size_t       _Reliable : 1;
         size_t       _Mysize : (__WORDSIZE - 1);
         size_t       _Capacity;
