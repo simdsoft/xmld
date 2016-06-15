@@ -19,11 +19,11 @@
 *       3.6.1: add suport for rapidxml,change module name xml3c to xmldrv     *
 *       3.6.00: For more conveniently, use default value api style, remove    *
 *               legacy api styles(empty or output parameter)                  *
-*       3.5.70:                                                               *                   
+*       3.5.70:                                                               *
 *               (1)Add support for tinyxml2                                   *
 *               (2)modify bug for the function:                               *
 *                  element::set_attribute_value will lead heap overflow because*
-*                  of recursive call infinity                                 *      
+*                  of recursive call infinity                                 *
 *       3.5.62: xml4w_api, Add vs2005 project file.                           *
 *       3.5.61: xml4w_api, Add vs2008, 2010 project files.                    *
 *       3.5.6: xml4w_api, support for compiler no c++2011 standard            *
@@ -104,7 +104,6 @@
 
 #include "nsconv.h"
 #include "unreal_string.h"
-#include "container_helper.h"
 
 #if defined(_USING_RAPIDXML)
 typedef purelib::unmanaged_string vstring;
@@ -161,7 +160,7 @@ namespace xmldrv {
         element         clone(void) const;
 
         vstring         get_name(void) const;
-        
+
         vstring         get_value(const vstring& default_value = "") const;
 
         vstring         get_attribute_value(const vstring& name, const vstring& = "") const;
@@ -175,9 +174,7 @@ namespace xmldrv {
         element         operator[](const vstring& name) const;
         element         get_child(int index = 0) const;
         element         get_child(const vstring& name, int index = 0) const;
-        /*void            get_children(std::vector<element>& children) const;
-        void            get_children(const char* name, std::vector<element>& children) const;
-*/
+
         void            set_value(const vstring& value);
         void            set_attribute_value(const vstring& name, const vstring& value);
 
@@ -199,13 +196,33 @@ namespace xmldrv {
 
         template<typename _Ty>
         _Ty             get_attribute_value(const char* name, const _Ty& default_value = _Ty()) const;
-        
+
+        /// set_value APIs
+        void            set_value(const char& value);
+        void            set_value(const short& value);
         void            set_value(const int& value);
         void            set_value(const long long& value);
+
+        void            set_value(const unsigned char& value);
+        void            set_value(const unsigned short& value);
+        void            set_value(const unsigned int& value);
+        void            set_value(const unsigned long long& value);
+
+        void            set_value(const float& value);
         void            set_value(const double& value);
 
+        /// set_attribute_value APIs
+        void            set_attribute_value(const vstring& name, const char& value);
+        void            set_attribute_value(const vstring& name, const short& value);
         void            set_attribute_value(const vstring& name, const int& value);
         void            set_attribute_value(const vstring& name, const long long& value);
+
+        void            set_attribute_value(const vstring& name, const unsigned char& value);
+        void            set_attribute_value(const vstring& name, const unsigned short& value);
+        void            set_attribute_value(const vstring& name, const unsigned int& value);
+        void            set_attribute_value(const vstring& name, const unsigned long long& value);
+
+        void            set_attribute_value(const vstring& name, const float& value);
         void            set_attribute_value(const vstring& name, const double& value);
 
         template<typename _Handler>
@@ -228,14 +245,14 @@ namespace xmldrv {
 
         void*           first_attribute() const;
 
-        static void*    next_attribute(void* attr);
-        static vstring  name_of_attr(void* attr);
-        static vstring  value_of_attr(void* attr);
+        static void*     next_attribute(void* attr);
+        static vstring   name_of_attr(void* attr);
+        static vstring   value_of_attr(void* attr);
 
         bool            is_valid(void) const { return _Mynode != nullptr; }
         operator xml4wNodePtr(void) { return _Mynode; }
-        operator xml4wNodePtr(void) const { return _Mynode;}
-        
+        operator xml4wNodePtr(void) const { return _Mynode; }
+
 #if _USE_IN_COCOS2DX
         void set_attribute_value(const vstring& name, const cocos2d::Color3B& value);
         void set_attribute_value(const vstring& name, const cocos2d::Color4B& value);
@@ -311,7 +328,7 @@ namespace xmldrv {
         **        length   : the length of xmlstring
         **
         ** @returns: No Explain...
-        */ 
+        */
         bool                openb(const char* xmlstring, int length);
 
         bool                openb(std::string&& xmlstring);
@@ -362,7 +379,7 @@ namespace xmldrv {
         ** @params :
         **          xpath: such as: "/peoples/people/name"
         **          index: the index of the element set, default: the first.
-        ** 
+        **
         ** @returns: the element of the document with spacified XPATH
         ** @remark: only libxml2, xercesc support this
         */

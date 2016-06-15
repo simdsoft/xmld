@@ -419,7 +419,7 @@ cocos2d::Color3B element::get_attribute_value(const vstring& name, const cocos2d
 {
     if (is_valid())
     {
-        auto attr = detail(_Mynode)->first_attribute(name);
+        auto attr = detail(_Mynode)->first_attribute(name.c_str(), name.size());
         if (attr != nullptr) {
             auto value = nsc::parse3i(std::string(attr->value(), attr->value_size()), ',');
             return cocos2d::Color3B(std::get<0>(value), std::get<1>(value), std::get<2>(value));
@@ -576,17 +576,27 @@ std::string element::to_string(bool formatted) const
     return "";
 }
 
-void xmldrv::element::set_value(const int & value)
-{
-    char svalue[64];
-    int n = sprintf(svalue, "%d", value);
-    set_value(vstring(svalue, n));
+#define _IMPL_SETVAL(type, fmt, capacity) \
+void xmldrv::element::set_value(const type & value) \
+{ \
+    char svalue[capacity]; \
+    auto n = sprintf(svalue, fmt, value); \
+    set_value(vstring(svalue, n)); \
 }
 
-void xmldrv::element::set_value(const long long & value)
+_IMPL_SETVAL(char, "%d", 8)
+_IMPL_SETVAL(short, "%d", 8)
+_IMPL_SETVAL(int, "%d", 16)
+_IMPL_SETVAL(long long, "%lld", 64)
+_IMPL_SETVAL(unsigned char, "%u", 8)
+_IMPL_SETVAL(unsigned short, "%u", 8)
+_IMPL_SETVAL(unsigned int, "%u", 16)
+_IMPL_SETVAL(unsigned long long, "%llu", 64)
+
+void xmldrv::element::set_value(const float & value)
 {
     char svalue[64];
-    int n = sprintf(svalue, "%lld", value);
+    int n = sprintf(svalue, "%.*g", 16, value);
     set_value(vstring(svalue, n));
 }
 
@@ -597,17 +607,27 @@ void xmldrv::element::set_value(const double & value)
     set_value(vstring(svalue, n));
 }
 
-void xmldrv::element::set_attribute_value(const vstring & name, const int & value)
-{
-    char svalue[64];
-    int n = sprintf(svalue, "%d", value);
-    set_attribute_value(name, vstring(svalue, n));
+#define _IMPL_SET_ATTRI_VAL(type, fmt, capacity) \
+void xmldrv::element::set_attribute_value(const vstring & name, const type & value) \
+{ \
+    char svalue[capacity]; \
+    int n = sprintf(svalue, fmt, value); \
+    set_attribute_value(name, vstring(svalue, n)); \
 }
 
-void xmldrv::element::set_attribute_value(const vstring & name, const long long & value)
+_IMPL_SET_ATTRI_VAL(char, "%d", 8)
+_IMPL_SET_ATTRI_VAL(short, "%d", 8)
+_IMPL_SET_ATTRI_VAL(int, "%d", 16)
+_IMPL_SET_ATTRI_VAL(long long, "%lld", 64)
+_IMPL_SET_ATTRI_VAL(unsigned char, "%u", 8)
+_IMPL_SET_ATTRI_VAL(unsigned short, "%u", 8)
+_IMPL_SET_ATTRI_VAL(unsigned int, "%u", 16)
+_IMPL_SET_ATTRI_VAL(unsigned long long, "%llu", 64)
+
+void xmldrv::element::set_attribute_value(const vstring & name, const float& value)
 {
     char svalue[64];
-    int n = sprintf(svalue, "%lld", value);
+    int n = sprintf(svalue, "%.*g", 16, value);
     set_attribute_value(name, vstring(svalue, n));
 }
 
@@ -943,10 +963,10 @@ void element::remove_children(const char* name)
     /*std::vector<element> children;
     this->get_children(name, children);
     std::for_each(
-        children.begin(),
-        children.end(),
-        std::mem_fun_ref(&element::remove_self)
-        );*/
+    children.begin(),
+    children.end(),
+    std::mem_fun_ref(&element::remove_self)
+    );*/
 }
 
 void element::remove_self(void)
@@ -1493,16 +1513,16 @@ void element::remove_children(const char* name)
         decltype(first) next = nullptr;
         for (decltype(first)* curr = &first; *curr;)
         {
-            decltype(first) entry = *curr;
-            if (0 == memcmp(entry->name(), name, (std::min)(entry->name_size(), strlen(name))))
-            {
-                *curr = entry->next_sibling();
-                detail(_Mynode)->remove_node(entry);
-            }
-            else {
-                next = entry->next_sibling();
-                curr = &next;
-            }
+        decltype(first) entry = *curr;
+        if (0 == memcmp(entry->name(), name, (std::min)(entry->name_size(), strlen(name))))
+        {
+        *curr = entry->next_sibling();
+        detail(_Mynode)->remove_node(entry);
+        }
+        else {
+        next = entry->next_sibling();
+        curr = &next;
+        }
         }*/
     }
 }
