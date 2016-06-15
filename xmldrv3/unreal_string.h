@@ -234,7 +234,7 @@ namespace purelib {
         unreal_string(const _Elem(&_Ptr)[_Size])
         {
             this->assign(_Ptr, _Size - 1);
-            this->_Literal = 1;
+            this->_Reliable = 1;
         }
 
         unreal_string(const _Elem* _Ptr, size_t _Length)
@@ -326,9 +326,14 @@ namespace purelib {
             this->_Bx._Const_Ptr = nullptr;
         }
 
-        bool is_literal() const
+        bool is_reliable() const
         {
-            return this->_Literal;
+            return this->_Reliable;
+        }
+
+        void set_reliable(bool reliable)
+        {
+            this->_Reliable = reliable;
         }
 
         template<size_t _Size>
@@ -339,7 +344,7 @@ namespace purelib {
             // shallow copy
             this->_Bx._Const_Ptr = _Ptr;
             this->_Mysize = _Size - 1;
-            this->_Literal = 1;
+            this->_Reliable = 1;
 
             return *this;
         }
@@ -423,11 +428,10 @@ namespace purelib {
 
         _Myt& assign(const _Myt& _Right)
         {
-            _Tidy();
-
             static_assert(!_Cleaner::value, "the managed unreal string can't assign to this managed unreal_string object!");
 
             _Tidy();
+
             ::memcpy(this, &_Right, sizeof(*this));
             return *this;
         }
@@ -759,7 +763,7 @@ namespace purelib {
                                      //char _Alias[_BUF_SIZE];	// to permit aliasing
         } _Bx;
         
-        size_t       _Literal : 1;
+        size_t       _Reliable : 1;
         size_t       _Mysize : (__WORDSIZE - 1);
         size_t       _Capacity;
     };

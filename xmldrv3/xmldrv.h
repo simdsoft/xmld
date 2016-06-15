@@ -215,10 +215,10 @@ namespace xmldrv {
         void            cforeach_breakif(const _Handler&) const;
 
         template<typename _Handler>
-        void            cforeach(const char* name, const _Handler&) const;
+        void            cforeach(const vstring& name, const _Handler&) const;
 
         template<typename _Handler> // op must return bool
-        void            cforeach_breakif(const char* name, const _Handler&) const;
+        void            cforeach_breakif(const vstring& name, const _Handler&) const;
 
         template<typename _Handler> // foreach attribute, op protype: (const unmanaged_string& name, const unmanaged_string& value)
         void            pforeach(const _Handler&) const;

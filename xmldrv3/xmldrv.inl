@@ -67,7 +67,7 @@ void element::cforeach_breakif(const _Handler& handler) const
 }
 
 template<typename _Handler> inline
-void element::cforeach(const char* name, const _Handler& handler) const
+void element::cforeach(const vstring& name, const _Handler& handler) const
 {
     auto ptr = *this;
     __xml4wts_algo_cond(ptr, 
@@ -79,7 +79,7 @@ void element::cforeach(const char* name, const _Handler& handler) const
 }
 
 template<typename _Handler> inline
-void element::cforeach_breakif(const char* name, const _Handler& handler) const
+void element::cforeach_breakif(const vstring& name, const _Handler& handler) const
 {
     auto ptr = *this;
     __xml4wts_algo_cond(ptr,

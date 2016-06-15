@@ -32,6 +32,9 @@
     <ClInclude Include="xmldrv.h">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="unreal_string.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="xmldrv.cpp">

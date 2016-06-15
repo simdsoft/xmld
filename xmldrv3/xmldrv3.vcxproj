@@ -148,6 +148,7 @@
     <ClInclude Include="container_helper.h" />
     <ClInclude Include="nsconv.h" />
     <ClInclude Include="politedef.h" />
+    <ClInclude Include="unreal_string.h" />
     <ClInclude Include="xmldrv.h" />
   </ItemGroup>
   <ItemGroup>

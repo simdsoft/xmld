@@ -132,7 +132,7 @@ element element::get_child(const vstring& name, int index) const
         ptr.get_next_sibling(),
         name == ptr.get_name() && (0 == index--),
         break
-        );
+    );
     return ptr;
 }
 
@@ -144,7 +144,7 @@ element element::get_child(int index) const
         ptr.get_next_sibling(),
         (0 == index--),
         break
-        );
+    );
     return ptr;
 }
 
@@ -193,7 +193,7 @@ bool document::is_open(void) const
 #include "rapidxml/rapidxml_iterators.hpp"
 #include "rapidxml/rapidxml_print.hpp"
 
-#define adapt_vstring(vstr, palloc) vstr.is_literal() ? vstr.c_str() : palloc->allocate_string(vstr.c_str(), vstr.size())
+#define adapt_vstring(vstr, palloc) vstr.is_reliable() ? vstr.c_str() : palloc->allocate_string(vstr.c_str(), vstr.size())
 
 inline rapidxml::xml_node<>* detail(void* raw)
 {
@@ -251,7 +251,7 @@ element element::get_first_child(void) const
         ptr->next_sibling(),
         is_element(_Mynode),
         break
-        );
+    );
     return (element)ptr;
 }
 
@@ -263,7 +263,7 @@ element element::get_prev_sibling(void) const
         ptr->previous_sibling(),
         is_element(_Mynode),
         break
-        );
+    );
     return (element)ptr;
 }
 
@@ -275,7 +275,7 @@ element element::get_next_sibling(void) const
         ptr->next_sibling(),
         is_element(_Mynode),
         break
-        );
+    );
     return (element)ptr;
 }
 
@@ -304,7 +304,7 @@ vstring element::get_attribute_value(const vstring& name, const vstring& default
     if (is_valid())
     {
         auto attr = detail(_Mynode)->first_attribute(name.c_str(), name.size());
-        
+
         if (attr != nullptr) {
             return vstring(attr->value(), attr->value_size());
         }
@@ -360,13 +360,8 @@ void element::set_value(const vstring& value)
     if (is_valid())
     {
         auto parent = detail(_Mynode)->parent();
-        if (value.is_literal()) {
-            detail(_Mynode)->value(value.c_str(), value.size());
-        }
-        else {
-            auto palloc = detail(_Mynode)->get_allocator();
-            detail(_Mynode)->value(adapt_vstring(value, palloc), value.size());
-        }
+        auto palloc = detail(_Mynode)->get_allocator();
+        detail(_Mynode)->value(adapt_vstring(value, palloc), value.size());
     }
 }
 
@@ -375,49 +370,49 @@ void element::set_value(const vstring& value)
 void element::set_attribute_value(const vstring& name, const cocos2d::Color3B& value)
 {
     char svalue[128] = { 0 };
-    sprintf(svalue, "%u,%u,%u", (unsigned int)value.r, (unsigned int)value.g, (unsigned int)value.b);
-    this->set_attribute_value(name, svalue);
+    auto n = sprintf(svalue, "%u,%u,%u", (unsigned int)value.r, (unsigned int)value.g, (unsigned int)value.b);
+    this->set_attribute_value(name, vstring(svalue, n));
 }
 
 void element::set_attribute_value(const vstring& name, const cocos2d::Color4B& value)
 {
     char svalue[128] = { 0 };
-    sprintf(svalue, "%u,%u,%u,%u", (unsigned int)value.r, (unsigned int)value.g, (unsigned int)value.b, (unsigned int)value.a);
-    set_attribute_value(name, svalue);
+    auto n = sprintf(svalue, "%u,%u,%u,%u", (unsigned int)value.r, (unsigned int)value.g, (unsigned int)value.b, (unsigned int)value.a);
+    set_attribute_value(name, vstring(svalue, n));
 }
 
 void  element::set_attribute_value(const vstring& name, const cocos2d::Color4F& value)
 {
     char svalue[128] = { 0 };
-    sprintf(svalue, "%.3f,%.3f,%.3f,%.3f", value.r, value.g, value.b, value.a);
-    set_attribute_value(name, svalue);
+    auto n = sprintf(svalue, "%.3f,%.3f,%.3f,%.3f", value.r, value.g, value.b, value.a);
+    set_attribute_value(name, vstring(svalue, n));
 }
 
 
 void  element::set_attribute_value(const vstring& name, const cocos2d::Rect& value)
 {
     char svalue[128] = { 0 };
-    sprintf(svalue, "%.3f,%.3f,%.3f,%.3f", value.origin.x, value.origin.y, value.size.width, value.size.height);
-    set_attribute_value(name, svalue);
+    auto n = sprintf(svalue, "%.3f,%.3f,%.3f,%.3f", value.origin.x, value.origin.y, value.size.width, value.size.height);
+    set_attribute_value(name, vstring(svalue, n));
 }
 
 void element::set_attribute_value(const vstring& name, const cocos2d::Vec2& value)
 {
     char svalue[128] = { 0 };
-    sprintf(svalue, "%.3f,%.3f", value.x, value.y);
-    set_attribute_value(name, svalue);
+    auto n = sprintf(svalue, "%.3f,%.3f", value.x, value.y);
+    set_attribute_value(name, vstring(svalue, n));
 }
 void element::set_attribute_value(const vstring& name, const cocos2d::Vec3& value)
 {
     char svalue[128] = { 0 };
-    sprintf(svalue, "%.3f,%.3f, %.3f", value.x, value.y, value.z);
-    set_attribute_value(name, svalue);
+    auto n = sprintf(svalue, "%.3f,%.3f, %.3f", value.x, value.y, value.z);
+    set_attribute_value(name, vstring(svalue, n));
 }
 void element::set_attribute_value(const vstring& name, const cocos2d::Size& value)
 {
     char svalue[128] = { 0 };
-    sprintf(svalue, "%.3f,%.3f", value.width, value.height);
-    set_attribute_value(name, svalue);
+    auto n = sprintf(svalue, "%.3f,%.3f", value.width, value.height);
+    set_attribute_value(name, vstring(svalue, n));
 }
 
 cocos2d::Color3B element::get_attribute_value(const vstring& name, const cocos2d::Color3B& default_value) const
@@ -437,7 +432,7 @@ cocos2d::Color4B element::get_attribute_value(const vstring& name, const cocos2d
 {
     if (is_valid())
     {
-        auto attr = detail(_Mynode)->first_attribute(name);
+        auto attr = detail(_Mynode)->first_attribute(name.c_str(), name.size());
         if (attr != nullptr) {
             auto value = nsc::parse4i(std::string(attr->value(), attr->value_size()), ',');
             return cocos2d::Color4B(std::get<0>(value), std::get<1>(value), std::get<2>(value), std::get<3>(value));
@@ -450,7 +445,7 @@ cocos2d::Color4F element::get_attribute_value(const vstring& name, const cocos2d
 {
     if (is_valid())
     {
-        auto attr = detail(_Mynode)->first_attribute(name);
+        auto attr = detail(_Mynode)->first_attribute(name.c_str(), name.size());
         if (attr != nullptr) {
             auto value = nsc::parse4f(std::string(attr->value(), attr->value_size()), ',');
             return cocos2d::Color4F(std::get<0>(value), std::get<1>(value), std::get<2>(value), std::get<3>(value));
@@ -463,7 +458,7 @@ cocos2d::Rect    element::get_attribute_value(const vstring& name, const cocos2d
 {
     if (is_valid())
     {
-        auto attr = detail(_Mynode)->first_attribute(name);
+        auto attr = detail(_Mynode)->first_attribute(name.c_str(), name.size());
         if (attr != nullptr) {
             auto value = nsc::parse4f(std::string(attr->value(), attr->value_size()), ',');
             return cocos2d::Rect(std::get<0>(value), std::get<1>(value), std::get<2>(value), std::get<3>(value));
@@ -476,7 +471,7 @@ cocos2d::Vec2    element::get_attribute_value(const vstring& name, const cocos2d
 {
     if (is_valid())
     {
-        auto attr = detail(_Mynode)->first_attribute(name);
+        auto attr = detail(_Mynode)->first_attribute(name.c_str(), name.size());
         if (attr != nullptr) {
             auto value = nsc::parse2f(std::string(attr->value(), attr->value_size()), ',');
             return cocos2d::Vec2(std::get<0>(value), std::get<1>(value));
@@ -489,7 +484,7 @@ cocos2d::Size    element::get_attribute_value(const vstring& name, const cocos2d
 {
     if (is_valid())
     {
-        auto attr = detail(_Mynode)->first_attribute(name);
+        auto attr = detail(_Mynode)->first_attribute(name.c_str(), name.size());
         if (attr != nullptr) {
             auto value = nsc::parse2f(std::string(attr->value(), attr->value_size()), ',');
             return cocos2d::Size(std::get<0>(value), std::get<1>(value));
@@ -512,10 +507,10 @@ void element::set_attribute_value(const vstring& name, const vstring& value)
         }
         else {
             detail(_Mynode)->insert_attribute(where,
-                palloc->allocate_attribute(adapt_vstring(name, palloc), 
+                palloc->allocate_attribute(adapt_vstring(name, palloc),
                     adapt_vstring(value, palloc),
                     name.size(),
-                    value.size() ));
+                    value.size()));
         }
     }
 }
@@ -524,26 +519,15 @@ element element::add_child(const vstring& name, const vstring& value /* = nullpt
 {
     if (is_valid()) {
         auto palloc = detail(_Mynode)->get_allocator();
-        auto newnode = palloc->allocate_node(rapidxml::node_type::node_element, 
-            adapt_vstring(name, palloc), 
-            value.empty() ? nullptr : adapt_vstring(value, palloc), 
+        auto newnode = palloc->allocate_node(rapidxml::node_type::node_element,
+            adapt_vstring(name, palloc),
+            value.empty() ? nullptr : adapt_vstring(value, palloc),
             name.size(), value.size());
         detail(_Mynode)->append_node(newnode);
         return (element)newnode;
     }
     return (element)nullptr;
 }
-
-//element element::add_child(const std::string& name, const char* value /* = nullptr */) const
-//{
-//    if (is_valid()) {
-//        auto palloc = detail(_Mynode)->get_allocator();
-//        auto newnode = palloc->allocate_node(rapidxml::node_type::node_element, palloc->allocate_string(name.c_str(), name.size()), value != nullptr ? palloc->allocate_string(value) : nullptr);
-//        detail(_Mynode)->append_node(newnode);
-//        return newnode;
-//    }
-//    return nullptr;
-//}
 
 void element::remove_children(void)
 {
@@ -552,7 +536,7 @@ void element::remove_children(void)
     }
 }
 
-void element::remove_children(const char* name)
+void element::remove_children(const vstring& name)
 {
     if (is_valid())
     {
@@ -561,7 +545,7 @@ void element::remove_children(const char* name)
         for (decltype(first)* curr = &first; *curr;)
         {
             decltype(first) entry = *curr;
-            if (0 == memcmp(entry->name(), name, (std::min)(entry->name_size(), strlen(name))))
+            if (0 == memcmp(entry->name(), name.c_str(), (std::min)(entry->name_size(), name.size())))
             {
                 *curr = entry->next_sibling();
                 detail(_Mynode)->remove_node(entry);
@@ -1130,7 +1114,7 @@ element element::get_first_child(void) const
         simplify(detail(ptr).next_sibling()),
         is_element(_Mynode),
         break
-        );
+    );
     return ptr;
 }
 
@@ -1142,7 +1126,7 @@ element element::get_prev_sibling(void) const
         simplify(detail(ptr).previous_sibling()),
         is_element(_Mynode),
         break
-        );
+    );
     return ptr;
 }
 
@@ -1154,7 +1138,7 @@ element element::get_next_sibling(void) const
         simplify(detail(ptr).next_sibling()),
         is_element(_Mynode),
         break
-        );
+    );
     return ptr;
 }
 
@@ -1403,7 +1387,7 @@ element element::get_prev_sibling(void) const
         ptr->prev,
         is_element(_Mynode),
         break
-        );
+    );
     return ptr;
 }
 
@@ -1415,7 +1399,7 @@ element element::get_next_sibling(void) const
         ptr->next,
         is_element(_Mynode),
         break
-        );
+    );
     return ptr;
 }
 
@@ -1427,7 +1411,7 @@ element element::get_first_child(void) const
         ptr->next,
         is_element(_Mynode),
         break
-        );
+    );
     return ptr;
 }
 
@@ -2109,7 +2093,7 @@ xml4wXPathResultPtr  document::xpath_eval(const char* xpath) const
             nullptr,
             DOMXPathResult::ORDERED_NODE_SNAPSHOT_TYPE,
             nullptr
-            );
+        );
     }
     return nullptr;
 }
