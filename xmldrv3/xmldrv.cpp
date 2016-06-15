@@ -420,7 +420,7 @@ void element::set_attribute_value(const vstring& name, const cocos2d::Size& valu
     set_attribute_value(name, svalue);
 }
 
-cocos2d::Color3B element::get_attribute_value(const char* name, const cocos2d::Color3B& default_value) const
+cocos2d::Color3B element::get_attribute_value(const vstring& name, const cocos2d::Color3B& default_value) const
 {
     if (is_valid())
     {
@@ -433,7 +433,7 @@ cocos2d::Color3B element::get_attribute_value(const char* name, const cocos2d::C
 
     return default_value;
 }
-cocos2d::Color4B element::get_attribute_value(const char* name, const cocos2d::Color4B& default_value) const
+cocos2d::Color4B element::get_attribute_value(const vstring& name, const cocos2d::Color4B& default_value) const
 {
     if (is_valid())
     {
@@ -446,7 +446,7 @@ cocos2d::Color4B element::get_attribute_value(const char* name, const cocos2d::C
 
     return default_value;
 }
-cocos2d::Color4F element::get_attribute_value(const char* name, const cocos2d::Color4F& default_value) const
+cocos2d::Color4F element::get_attribute_value(const vstring& name, const cocos2d::Color4F& default_value) const
 {
     if (is_valid())
     {
@@ -459,7 +459,7 @@ cocos2d::Color4F element::get_attribute_value(const char* name, const cocos2d::C
 
     return default_value;
 }
-cocos2d::Rect    element::get_attribute_value(const char* name, const cocos2d::Rect& default_value) const
+cocos2d::Rect    element::get_attribute_value(const vstring& name, const cocos2d::Rect& default_value) const
 {
     if (is_valid())
     {
@@ -472,7 +472,7 @@ cocos2d::Rect    element::get_attribute_value(const char* name, const cocos2d::R
 
     return default_value;
 }
-cocos2d::Vec2    element::get_attribute_value(const char* name, const cocos2d::Vec2& default_value) const
+cocos2d::Vec2    element::get_attribute_value(const vstring& name, const cocos2d::Vec2& default_value) const
 {
     if (is_valid())
     {
@@ -485,7 +485,7 @@ cocos2d::Vec2    element::get_attribute_value(const char* name, const cocos2d::V
 
     return default_value;
 }
-cocos2d::Size    element::get_attribute_value(const char* name, const cocos2d::Size& default_value) const
+cocos2d::Size    element::get_attribute_value(const vstring& name, const cocos2d::Size& default_value) const
 {
     if (is_valid())
     {
