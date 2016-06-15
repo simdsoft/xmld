@@ -602,42 +602,42 @@ std::string element::to_string(bool formatted) const
     return "";
 }
 
-inline void xmldrv::element::set_value(const int & value)
+void xmldrv::element::set_value(const int & value)
 {
     char svalue[64];
     int n = sprintf(svalue, "%d", value);
     set_value(vstring(svalue, n));
 }
 
-inline void xmldrv::element::set_value(const long long & value)
+void xmldrv::element::set_value(const long long & value)
 {
     char svalue[64];
     int n = sprintf(svalue, "%lld", value);
     set_value(vstring(svalue, n));
 }
 
-inline void xmldrv::element::set_value(const double & value)
+void xmldrv::element::set_value(const double & value)
 {
     char svalue[64];
     int n = sprintf(svalue, "%.*g", 16, value);
     set_value(vstring(svalue, n));
 }
 
-inline void xmldrv::element::set_attribute_value(const vstring & name, const int & value)
+void xmldrv::element::set_attribute_value(const vstring & name, const int & value)
 {
     char svalue[64];
     int n = sprintf(svalue, "%d", value);
     set_attribute_value(name, vstring(svalue, n));
 }
 
-inline void xmldrv::element::set_attribute_value(const vstring & name, const long long & value)
+void xmldrv::element::set_attribute_value(const vstring & name, const long long & value)
 {
     char svalue[64];
     int n = sprintf(svalue, "%lld", value);
     set_attribute_value(name, vstring(svalue, n));
 }
 
-inline void xmldrv::element::set_attribute_value(const vstring & name, const double & value)
+void xmldrv::element::set_attribute_value(const vstring & name, const double & value)
 {
     char svalue[64];
     int n = sprintf(svalue, "%.*g", 16, value);

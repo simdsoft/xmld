@@ -247,6 +247,14 @@ namespace polite = ::purelib;
 #define _HAS_STD_THREAD 1
 #endif
 
+#if !defined(__WORDSIZE)
+#if defined(_M_X64) || defined(__LP64__) || defined(__x86_64) || defined(_WIN64)
+#define __WORDSIZE 64
+#else
+#define __WORDSIZE 32
+#endif
+#endif
+
 #endif /* _POLITEDEF_H_ */
 /*
 * Copyright (c) 2012-2014 by X.D. Guo ALL RIGHTS RESERVED.

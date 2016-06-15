@@ -758,13 +758,9 @@ namespace purelib {
             _Elem*       _Ptr;       // managed pointer
                                      //char _Alias[_BUF_SIZE];	// to permit aliasing
         } _Bx;
-#if defined(_M_X64) || defined(_LP64) || defined(__x86_64) || defined(_WIN64)
-        size_t       _Litral : 1;
-        size_t       _Mysize : 63;
-#else
+        
         size_t       _Literal : 1;
-        size_t       _Mysize : 31;
-#endif
+        size_t       _Mysize : (__WORDSIZE - 1);
         size_t       _Capacity;
     };
 
