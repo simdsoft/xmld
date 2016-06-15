@@ -14,6 +14,8 @@ void main()
 
     int value = people.get_attribute_value("age", (unsigned int)33);
 
+    auto vv = people.get_attribute_value("age", "");
+
     people.add_child("address", "Guandong Shenzhen Bao'an Xi'xiang Streets.");
 
     auto number = people.add_child("number");

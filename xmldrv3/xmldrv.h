@@ -111,6 +111,16 @@ typedef purelib::unmanaged_string vstring;
 typedef std::string vstring;
 #endif
 
+template<size_t _Size> inline
+vstring make_vstring(const char(&_Ptr)[_Size])
+{
+    vstring temp(_Ptr, _Size - 1);
+    temp.set_reliable(true);
+    return std::move(temp);
+}
+
+#define _mkvs make_vstring
+
 extern vstring vstring_empty;
 
 /// basic types
@@ -194,7 +204,7 @@ namespace xmldrv {
         std::string     to_string(bool formatted = false) const;
 
         /// get_value APIs
-        bool            get_value(bool value = false, int radix = 10) const;
+        // bool            get_value(bool value = false, int radix = 10) const;
 
         int8_t          get_value(int8_t value = 0, int radix = 10) const;
         int16_t         get_value(int16_t value = 0, int radix = 10) const;
@@ -210,7 +220,7 @@ namespace xmldrv {
         double          get_value(double value = 0) const;
 
         /// get_attribute_value APIs
-        bool            get_attribute_value(const vstring& name, bool value = false, int radix = 10) const;
+        // bool            get_attribute_value(const vstring& name, bool value = false, int radix = 10) const;
 
         int8_t          get_attribute_value(const vstring& name, int8_t value = 0, int radix = 10) const;
         int16_t         get_attribute_value(const vstring& name, int16_t value = 0, int radix = 10) const;

@@ -241,6 +241,7 @@ namespace purelib {
         unreal_string(const _Elem(&_Ptr)[_Size])
         {
             this->assign(_Ptr, _Size - 1);
+            this->_Reliable = 1;
         }
 
         unreal_string(const _Elem* _Ptr, size_t _Length)
@@ -364,7 +365,7 @@ namespace purelib {
                 this->_Bx._Const_Ptr = _Ptr;
                 this->_Mysize = native_utils::strlen(_Ptr);
 
-                this->_Reliable = 1;
+                // this->_Reliable = 1;
             }
             return *this;
         }
@@ -377,7 +378,7 @@ namespace purelib {
                 this->_Bx._Const_Ptr = _Ptr;
                 this->_Mysize = _Length;
 
-                this->_Reliable = 1;
+                // this->_Reliable = 1;
             }
             return *this;
         }
@@ -390,7 +391,7 @@ namespace purelib {
                 this->_Bx._Const_Ptr = _First;
                 this->_Mysize = _Last - _First;
 
-                this->_Reliable = 1;
+                // this->_Reliable = 1;
             }
             return *this;
         }
@@ -403,7 +404,7 @@ namespace purelib {
                 this->_Bx._Ptr = _Ptr;
                 this->_Mysize = native_utils::strlen(_Ptr);
 
-                this->_Reliable = 1;
+                // this->_Reliable = 1;
             }
             return *this;
         }
@@ -416,7 +417,7 @@ namespace purelib {
                 this->_Bx._Ptr = _Ptr;
                 this->_Mysize = _Length;
 
-                this->_Reliable = 1;
+                // this->_Reliable = 1;
             }
             return *this;
         }
@@ -429,7 +430,7 @@ namespace purelib {
                 this->_Bx._Ptr = _First;
                 this->_Mysize = _Last - _First;
 
-                this->_Reliable = 1;
+                // this->_Reliable = 1;
             }
             return *this;
         }

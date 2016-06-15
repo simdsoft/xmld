@@ -593,8 +593,6 @@ type   element::get_value(type value, int radix) const \
     return value; \
 }
 
-_IMPL_GETVAL(bool, strtol)
-
 _IMPL_GETVAL(int8_t, strtol)
 _IMPL_GETVAL(int16_t, strtol)
 _IMPL_GETVAL(int32_t, strtol)
@@ -627,7 +625,6 @@ type  element::get_attribute_value(const vstring& name, type value, int radix) c
     } \
     return value; \
 }
-_IMPL_GET_ATTRIVAL(bool, strtol)
 
 _IMPL_GET_ATTRIVAL(int8_t, strtol)
 _IMPL_GET_ATTRIVAL(int16_t, strtol)
