@@ -11,8 +11,8 @@
 *     or _USING_RAPIDXML                                                      *
 *                                                                             *
 *     Version history:                                                        *
-*       3.9.3: element::is_good --> element::is_good                         *
-*              add operator[](const char* name) interface.                    *
+*       3.10: use vstring                                                     *
+*       3.9.3: add operator[](const char* name) interface.                    *
 *       3.9.2: change module name 'xml4wrapper' --> 'xmldrv'                  *
 *              remove 3rd header dependency.                                  *
 *       3.6.2: rapidxml use fatest mode flags                                 *
