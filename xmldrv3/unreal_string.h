@@ -560,11 +560,11 @@ namespace purelib {
             return (this->assign(_Ptr));
         }
 
-        template<size_t _Size>
+        /*template<size_t _Size>
         _Myt& operator=(const _Elem(&_Ptr)[_Size])
         {
             return (this->assign(_Ptr, _Size - 1));
-        }
+        }*/
 
         _Myt& operator=(const std::basic_string<_Elem>& _Right)
         {	// assign [_Ptr, <null>)
