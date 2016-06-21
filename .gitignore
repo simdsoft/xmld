@@ -1,5 +1,6 @@
 Debug/*
 Release/*
+.vs/*
 xmldrv3/Debug/*
 xmldrv3/Release/*
 xmldrv3_test/Debug/*

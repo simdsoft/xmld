@@ -78,7 +78,7 @@ namespace {
         fclose(fp);
         if (bytes_readed < size)
             storage.resize(bytes_readed);
-        return std::move(storage);
+        return storage;
     }
 
     bool write_file_data(const char* filename, const char* data, size_t size)
@@ -349,7 +349,7 @@ vstring  element::name_of_attr(void* attrv)
         auto attr = ((const rapidxml::xml_attribute<char>*)attrv);
         name.assign(attr->name(), attr->name_size());
     }
-    return std::move(name);
+    return name;
 }
 
 vstring element::value_of_attr(void* attrv)
@@ -359,7 +359,7 @@ vstring element::value_of_attr(void* attrv)
         auto attr = ((const rapidxml::xml_attribute<char>*)attrv);
         value.assign(attr->value(), attr->value_size());
     }
-    return std::move(value);
+    return value;
 }
 
 void element::set_value(const vstring& value)
@@ -578,7 +578,7 @@ std::string element::to_string(bool formatted) const
     if (is_good()) {
         std::string text;
         rapidxml::print(std::back_inserter(text), *detail(_Mynode), !formatted ? rapidxml::print_no_indenting : 0);
-        return std::move(text);
+        return text;
     }
     return "";
 }
