@@ -193,7 +193,7 @@ namespace xmldrv {
         void            set_attribute_value(const vstring& name, const vstring& value);
 
         element         add_child(const element& element) const;
-        element         add_child(const vstring& name, const vstring& value = nullptr) const;
+        element         add_child(const vstring& name, const vstring& value = "") const;
 
         void            remove_child(int index = 0);
         void            remove_child(const vstring& name, int index = 0);
