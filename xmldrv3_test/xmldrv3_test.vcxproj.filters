@@ -13,10 +13,117 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="vtd-xml">
+      <UniqueIdentifier>{95467571-3a3d-48d2-bf2f-000ff0c11bb5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="vtd-xml\impl">
+      <UniqueIdentifier>{40bbe483-0b61-40f5-83f4-6b4634f90bc0}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="test.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\xmldrv3\vtd-xml\arrayList.cpp">
+      <Filter>vtd-xml\impl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\xmldrv3\vtd-xml\binaryExpr.cpp">
+      <Filter>vtd-xml\impl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\xmldrv3\vtd-xml\bookMark.cpp">
+      <Filter>vtd-xml\impl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\xmldrv3\vtd-xml\cachedExpr.cpp">
+      <Filter>vtd-xml\impl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\xmldrv3\vtd-xml\contextBuffer.cpp">
+      <Filter>vtd-xml\impl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\xmldrv3\vtd-xml\decoder.cpp">
+      <Filter>vtd-xml\impl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\xmldrv3\vtd-xml\elementFragmentNs.cpp">
+      <Filter>vtd-xml\impl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\xmldrv3\vtd-xml\fastIntBuffer.cpp">
+      <Filter>vtd-xml\impl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\xmldrv3\vtd-xml\fastLongBuffer.cpp">
+      <Filter>vtd-xml\impl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\xmldrv3\vtd-xml\filterExpr.cpp">
+      <Filter>vtd-xml\impl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\xmldrv3\vtd-xml\funcExpr.cpp">
+      <Filter>vtd-xml\impl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\xmldrv3\vtd-xml\indexHandler.cpp">
+      <Filter>vtd-xml\impl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\xmldrv3\vtd-xml\intHash.cpp">
+      <Filter>vtd-xml\impl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\xmldrv3\vtd-xml\literalExpr.cpp">
+      <Filter>vtd-xml\impl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\xmldrv3\vtd-xml\locationPathExpr.cpp">
+      <Filter>vtd-xml\impl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\xmldrv3\vtd-xml\nodeRecorder.cpp">
+      <Filter>vtd-xml\impl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\xmldrv3\vtd-xml\numberExpr.cpp">
+      <Filter>vtd-xml\impl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\xmldrv3\vtd-xml\pathExpr.cpp">
+      <Filter>vtd-xml\impl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\xmldrv3\vtd-xml\textIter.cpp">
+      <Filter>vtd-xml\impl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\xmldrv3\vtd-xml\transcoder.cpp">
+      <Filter>vtd-xml\impl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\xmldrv3\vtd-xml\unaryExpr.cpp">
+      <Filter>vtd-xml\impl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\xmldrv3\vtd-xml\unionExpr.cpp">
+      <Filter>vtd-xml\impl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\xmldrv3\vtd-xml\variableExpr.cpp">
+      <Filter>vtd-xml\impl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\xmldrv3\vtd-xml\vtdGen.cpp">
+      <Filter>vtd-xml\impl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\xmldrv3\vtd-xml\vtdNav.cpp">
+      <Filter>vtd-xml\impl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\xmldrv3\vtd-xml\vtdNav_L5.cpp">
+      <Filter>vtd-xml\impl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\xmldrv3\vtd-xml\XMLChar.cpp">
+      <Filter>vtd-xml\impl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\xmldrv3\vtd-xml\XMLModifier.cpp">
+      <Filter>vtd-xml\impl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\xmldrv3\vtd-xml\xpath_driver.cc">
+      <Filter>vtd-xml\impl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\xmldrv3\vtd-xml\xpathParser.tab.cc">
+      <Filter>vtd-xml\impl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\xmldrv3\vtd-xml\lex.yy.cc">
+      <Filter>vtd-xml\impl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\xmldrv3\vtd-xml\autoPilot.cpp">
+      <Filter>vtd-xml\impl</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\xmldrv3\vtd-xml\customTypes.h">
+      <Filter>vtd-xml\impl</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

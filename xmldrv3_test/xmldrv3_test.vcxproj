@@ -118,7 +118,7 @@
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
-      <SubSystem>Windows</SubSystem>
+      <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -142,7 +142,42 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\xmldrv3\vtd-xml\arrayList.cpp" />
+    <ClCompile Include="..\xmldrv3\vtd-xml\autoPilot.cpp" />
+    <ClCompile Include="..\xmldrv3\vtd-xml\binaryExpr.cpp" />
+    <ClCompile Include="..\xmldrv3\vtd-xml\bookMark.cpp" />
+    <ClCompile Include="..\xmldrv3\vtd-xml\cachedExpr.cpp" />
+    <ClCompile Include="..\xmldrv3\vtd-xml\contextBuffer.cpp" />
+    <ClCompile Include="..\xmldrv3\vtd-xml\decoder.cpp" />
+    <ClCompile Include="..\xmldrv3\vtd-xml\elementFragmentNs.cpp" />
+    <ClCompile Include="..\xmldrv3\vtd-xml\fastIntBuffer.cpp" />
+    <ClCompile Include="..\xmldrv3\vtd-xml\fastLongBuffer.cpp" />
+    <ClCompile Include="..\xmldrv3\vtd-xml\filterExpr.cpp" />
+    <ClCompile Include="..\xmldrv3\vtd-xml\funcExpr.cpp" />
+    <ClCompile Include="..\xmldrv3\vtd-xml\indexHandler.cpp" />
+    <ClCompile Include="..\xmldrv3\vtd-xml\intHash.cpp" />
+    <ClCompile Include="..\xmldrv3\vtd-xml\lex.yy.cc" />
+    <ClCompile Include="..\xmldrv3\vtd-xml\literalExpr.cpp" />
+    <ClCompile Include="..\xmldrv3\vtd-xml\locationPathExpr.cpp" />
+    <ClCompile Include="..\xmldrv3\vtd-xml\nodeRecorder.cpp" />
+    <ClCompile Include="..\xmldrv3\vtd-xml\numberExpr.cpp" />
+    <ClCompile Include="..\xmldrv3\vtd-xml\pathExpr.cpp" />
+    <ClCompile Include="..\xmldrv3\vtd-xml\textIter.cpp" />
+    <ClCompile Include="..\xmldrv3\vtd-xml\transcoder.cpp" />
+    <ClCompile Include="..\xmldrv3\vtd-xml\unaryExpr.cpp" />
+    <ClCompile Include="..\xmldrv3\vtd-xml\unionExpr.cpp" />
+    <ClCompile Include="..\xmldrv3\vtd-xml\variableExpr.cpp" />
+    <ClCompile Include="..\xmldrv3\vtd-xml\vtdGen.cpp" />
+    <ClCompile Include="..\xmldrv3\vtd-xml\vtdNav.cpp" />
+    <ClCompile Include="..\xmldrv3\vtd-xml\vtdNav_L5.cpp" />
+    <ClCompile Include="..\xmldrv3\vtd-xml\XMLChar.cpp" />
+    <ClCompile Include="..\xmldrv3\vtd-xml\XMLModifier.cpp" />
+    <ClCompile Include="..\xmldrv3\vtd-xml\xpathParser.tab.cc" />
+    <ClCompile Include="..\xmldrv3\vtd-xml\xpath_driver.cc" />
     <ClCompile Include="test.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\xmldrv3\vtd-xml\customTypes.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
