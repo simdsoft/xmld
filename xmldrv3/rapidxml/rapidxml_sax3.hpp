@@ -8,6 +8,13 @@
 #include <vector>
 #include "rapidxml.hpp"
 
+// On MSVC, disable "conditional expression is constant" warning (level 4). 
+// This warning is almost impossible to avoid with certain types of templated code
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable:4127)   // Conditional expression is constant
+#endif
+
 #if !defined(RAPIDXML_PARSE_ERROR)
 #define RAPIDXML_PARSE_ERROR(what, where) throw parse_error(what, where)
 #endif
@@ -72,19 +79,16 @@ namespace rapidxml
     {
     public:
         /**
-        * @js NA
-        * @lua NA
+        * @remark: The parameter 'name' without null terminator charactor
         */
         virtual void xmlSAX2StartElement(const char *name, size_t, const char **atts, size_t) = 0;
 
         /**
-        * @js NA
-        * @lua NA
+        * @remark: The parameter 'name' has null terminator charactor
         */
         virtual void xmlSAX2EndElement(const char *name, size_t) = 0;
         /**
-        * @js NA
-        * @lua NA
+        * @remark: The parameter 's' has null terminator charactor
         */
         virtual void xmlSAX2Text(const char *s, size_t) = 0;
 
@@ -106,11 +110,15 @@ namespace rapidxml
         void xmlSAX3EndAttr(const char* elementName, size_t len) final
         {
             if (!elementAttrs.empty()) {
-                xmlSAX2StartElement(elementName, len, &elementAttrs[0], elementAttrs.size());
+                elementAttrs.push_back(nullptr);
+                xmlSAX2StartElement(elementName, len, &elementAttrs[0], elementAttrs.size() - 1);
                 elementAttrs.clear();
             }
-            else 
-                xmlSAX2StartElement(elementName, len, nullptr, 0);
+            else {
+                const char* attr = nullptr;
+                const char** attrs = &attr;
+                xmlSAX2StartElement(elementName, len, attrs, 0);
+            }
         }
 
 
