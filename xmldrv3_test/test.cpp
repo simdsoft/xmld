@@ -1,5 +1,7 @@
 #include "../xmldrv3/xmldrv.h"
 #include "../xmldrv3/vtd-xml/everything.h"
+#include "../xmldrv3/rapidxml/rapidxml_sax3.hpp"
+#include <iostream>
 #if defined(_DEBUG)
 #pragma comment(lib, "../Debug/xmldrv3.lib")
 #else
@@ -68,6 +70,45 @@ namespace {
 	}
 };
 
+class xml_sax2_handler_impl : public rapidxml::xml_sax2_handler
+{
+    /**
+    * @js NA
+    * @lua NA
+    */
+    virtual void xmlSAX2StartElement(const char *name, size_t len, const char **atts, size_t attslen)
+    {
+        //std::cout << "xmlSAX2StartElement -->";
+        //std::cout.write(name, len);
+        //std::cout << "\n\tattribs:\n";
+        //for (auto i = 0; i < attslen; i += 2)
+        //{
+        //    std::cout << "\t\t" << atts[i] << ":" << atts[i + 1] << "\n";
+        //}
+    }
+
+    /**
+    * @js NA
+    * @lua NA
+    */
+    virtual void xmlSAX2EndElement(const char *name, size_t len)
+    {
+        //std::cout << "xmlSAX2EndElement -->";
+        //std::cout.write(name, len);
+        //std::cout << "\n\n";
+    }
+    /**
+    * @js NA
+    * @lua NA
+    */
+    virtual void xmlSAX2Text(const char *s, size_t len)
+    {
+        //std::cout << "xmlSAX2Text -->";
+        //std::cout.write(s, len);
+        //std::cout << "\n\n";
+    }
+};
+
 void main()
 {
 #if 0
@@ -96,15 +137,22 @@ void main()
 
 	doc.close();
 #endif
+    
 
 	xmld::document d;
-	
+    
 	std::string data = read_file_data("address.xml");
 
-	auto start = clock();
+    auto start = clock();
+    xml_sax2_handler_impl handler;
+    rapidxml::xml_sax3_parser<> parser(&handler);
+    parser.parse<>(&data.front(), data.size());
+    printf("SAX parse: %lf seconds used!\n", (clock() - start) / (double)CLOCKS_PER_SEC);
+
+    data = read_file_data("address.xml");
+	start = clock();
 	d.openb(std::move(data));
 	printf("rapidxml: %lf seconds used!\n", (clock() - start) / (double)CLOCKS_PER_SEC);
-
 
 	data = read_file_data("address.xml");
 
@@ -138,4 +186,5 @@ void main()
 
 	printf("vtd-xml: %lf seconds used!\n", (clock() - start) / (double)CLOCKS_PER_SEC);
 
+    system("pause");
 }

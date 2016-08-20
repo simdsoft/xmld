@@ -35,6 +35,9 @@
     <ClInclude Include="unreal_string.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="rapidxml\rapidxml_sax3.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="xmldrv.cpp">

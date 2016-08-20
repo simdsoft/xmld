@@ -1413,7 +1413,7 @@ namespace rapidxml
             }
 
             // Parse BOM, if any
-            parse_bom<Flags>(text);
+            skip_bom<Flags>(text);
 
             // Parse children
             while (1)
@@ -1748,14 +1748,14 @@ namespace rapidxml
         
         // Parse BOM, if any
         template<int Flags>
-        void parse_bom(Ch *&text)
+        void skip_bom(Ch *&text)
         {
             // UTF-8?
             if (static_cast<unsigned char>(text[0]) == 0xEF && 
                 static_cast<unsigned char>(text[1]) == 0xBB && 
                 static_cast<unsigned char>(text[2]) == 0xBF)
             {
-                text += 3;      // Skup utf-8 bom
+                text += 3;      // skip utf-8 bom
             }
         }
 
