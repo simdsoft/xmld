@@ -61,7 +61,7 @@ namespace rapidxml
     class xml_sax3_handler
     {
     public:
-        ~xml_sax3_handler(){}
+        virtual ~xml_sax3_handler(){}
         
         virtual void xmlSAX3StartElement(const char *elementName, size_t) = 0;
 
