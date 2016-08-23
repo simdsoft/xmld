@@ -1,6 +1,7 @@
 #include "../xmldrv3/xmldrv.h"
 #include "../xmldrv3/vtd-xml/everything.h"
 #include "../xmldrv3/rapidxml/rapidxml_sax3.hpp"
+#include "tinyxml2.h"
 #include <iostream>
 #if defined(_DEBUG)
 #pragma comment(lib, "../Debug/xmldrv3.lib")
@@ -142,6 +143,7 @@ void main()
     xmld::document d;
 
     std::string data = read_file_data("address.xml");
+    printf("test file size:%lfMB\n\n", data.size() / (double)SZ(1, M));
 
     auto start = clock();
     strlen(data.c_str());
@@ -159,6 +161,15 @@ void main()
     d.openb(std::move(data));
     printf("rapidxml: %lf seconds used!\n", (clock() - start) / (double)CLOCKS_PER_SEC);
 
+    /// tinyxml2 performance test
+    data = read_file_data("address.xml");
+
+    start = clock();
+    tinyxml2::XMLDocument tinyDoc;
+    tinyDoc.Parse(data.c_str(), data.length());
+    printf("tinyxml2: %lf seconds used!\n", (clock() - start) / (double)CLOCKS_PER_SEC);
+
+    /// VTD xml performacne test
     data = read_file_data("address.xml");
 
     start = clock();

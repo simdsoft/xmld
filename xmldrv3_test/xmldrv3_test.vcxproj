@@ -175,9 +175,11 @@
     <ClCompile Include="..\xmldrv3\vtd-xml\xpathParser.tab.cc" />
     <ClCompile Include="..\xmldrv3\vtd-xml\xpath_driver.cc" />
     <ClCompile Include="test.cpp" />
+    <ClCompile Include="tinyxml2.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\xmldrv3\vtd-xml\customTypes.h" />
+    <ClInclude Include="tinyxml2.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

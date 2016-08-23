@@ -120,10 +120,16 @@
     <ClCompile Include="..\xmldrv3\vtd-xml\autoPilot.cpp">
       <Filter>vtd-xml\impl</Filter>
     </ClCompile>
+    <ClCompile Include="tinyxml2.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\xmldrv3\vtd-xml\customTypes.h">
       <Filter>vtd-xml\impl</Filter>
+    </ClInclude>
+    <ClInclude Include="tinyxml2.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
