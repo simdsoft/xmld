@@ -6,6 +6,7 @@
 // Revision $DateTime: 2009/05/13 01:46:17 $
 //! \file rapidxml_sax3.hpp This file contains rapidxml SAX parser implementation
 #include <vector>
+#include <utility>
 #include "rapidxml.hpp"
 
 // On MSVC, disable "conditional expression is constant" warning (level 4). 
@@ -23,7 +24,7 @@ namespace rapidxml
 {
     const int parse_normal = parse_no_data_nodes;
 
-    class tok_string
+    /*class tok_string
     {
     public:
         tok_string() : value_(nullstring()), length_(0) {}
@@ -35,7 +36,7 @@ namespace rapidxml
 
         size_t  length() const { return length_; }
         void    length(size_t l) { length_ = l; }
-        void    length(const char* end) { length_ = end - value_; }
+        void    length(char* end) { length_ = end - value_; }
 
         char& operator[](size_t index)
         {
@@ -56,23 +57,26 @@ namespace rapidxml
     private:
         char*       value_;
         size_t      length_;
-    };
+    };*/
+
+    typedef std::pair<char*, size_t> tok_string;
+    typedef std::pair<const char*, size_t> const_tok_string;
 
     class xml_sax3_handler
     {
     public:
         virtual ~xml_sax3_handler() {}
 
-        virtual void xmlSAX3StartElement(const char *elementName, size_t) = 0;
+        virtual void xmlSAX3StartElement(char *name, size_t) = 0;
 
-        virtual void xmlSAX3Attr(const char* elementName, size_t,
-            const char* name, size_t,
+        virtual void xmlSAX3Attr(const char* name, size_t,
             const char* value, size_t) = 0;
-        virtual void xmlSAX3EndAttr(const char* elementName, size_t) = 0;
+
+        virtual void xmlSAX3EndAttr() = 0;
 
         virtual void xmlSAX3EndElement(const char *name, size_t) = 0;
 
-        virtual void xmlSAX3Text(const char *s, size_t len) = 0;
+        virtual void xmlSAX3Text(const char *text, size_t len) = 0;
     };
 
     ///////////////////////////////////////////////////////////////////////////
@@ -98,12 +102,13 @@ namespace rapidxml
 
 
         /// Implement SAX3 interfaces:
-        virtual void xmlSAX3StartElement(const char *elementName, size_t) final
+        virtual void xmlSAX3StartElement(char * name, size_t size) final
         {
-            ; // do nothing
+            elementName.first = name;
+            elementName.second = size;
         }
 
-        virtual void xmlSAX3Attr(const char* elementName, size_t,
+        virtual void xmlSAX3Attr(
             const char* name, size_t,
             const char* value, size_t) final
         {
@@ -111,20 +116,24 @@ namespace rapidxml
             elementAttrs.push_back(value);
         }
 
-        void xmlSAX3EndAttr(const char* elementName, size_t len) final
+        void xmlSAX3EndAttr() final
         {
+            auto chTemp = elementName.first[elementName.second];
+            elementName.first[elementName.second] = '\0';
+
             if (!elementAttrs.empty()) {
                 elementAttrs.push_back(nullptr);
-                xmlSAX2StartElement(elementName, len, &elementAttrs[0], elementAttrs.size() - 1);
+                xmlSAX2StartElement(elementName.first, elementName.second, &elementAttrs[0], elementAttrs.size() - 1);
                 elementAttrs.clear();
             }
             else {
                 const char* attr = nullptr;
                 const char** attrs = &attr;
-                xmlSAX2StartElement(elementName, len, attrs, 0);
+                xmlSAX2StartElement(elementName.first, elementName.second, attrs, 0);
             }
-        }
 
+            elementName.first[elementName.second] = chTemp;
+        }
 
         virtual void xmlSAX3EndElement(const char *name, size_t len) final
         {
@@ -136,6 +145,7 @@ namespace rapidxml
             xmlSAX2Text(s, len);
         }
 
+        tok_string elementName;
         std::vector<const char*> elementAttrs;
     };
 
@@ -750,7 +760,7 @@ namespace rapidxml
         // Return character that ends data.
         // This is necessary because this character might have been overwritten by a terminating 0
         template<int Flags>
-        Ch parse_and_append_data(const tok_string& /*elementName*/, Ch *&text, Ch *contents_start)
+        Ch parse_and_append_data(/*const tok_string& elementName unused for SAX,*/ Ch *&text, Ch *contents_start)
         {
             // Backup to contents start if whitespace trimming is disabled
             if (!(Flags & parse_trim_whitespace))
@@ -862,20 +872,21 @@ namespace rapidxml
             // xml_node<Ch> *element = this->allocate_node(node_element);
 
             // Extract element name
-            tok_string elementName(text);
+            tok_string elementName(text, 0);
             skip<node_name_pred, Flags>(text, endptr_);
-            elementName.length(text);
-            if (0 == elementName.length())
+            elementName.second = text - elementName.first;
+            if (0 == elementName.second)
                 RAPIDXML_PARSE_ERROR("expected element name", text);
 
-            handler_->xmlSAX3StartElement(elementName.value(), elementName.length());
+            handler_->xmlSAX3StartElement(elementName.first, elementName.second);
 
             // Skip whitespace between element name and attributes or >
             skip<whitespace_pred, Flags>(text, endptr_);
 
             // Parse attributes, if any
             parse_node_attributes<Flags>(text);
-            handler_->xmlSAX3EndAttr(elementName.value(), elementName.length());
+
+            handler_->xmlSAX3EndAttr();
 
             // Determine ending type
             if (*text == Ch('>'))
@@ -894,11 +905,12 @@ namespace rapidxml
                 RAPIDXML_PARSE_ERROR("expected >", text);
 
             // Place zero terminator after name
-            if (!(Flags & parse_no_string_terminators))
-                elementName.write_null_terminator();
+            if (!(Flags & parse_no_string_terminators)) {
+                elementName.first[elementName.second] = (Ch)'\0';
+            }
 
             // Return parsed element
-            handler_->xmlSAX3EndElement(elementName.value(), elementName.length());
+            handler_->xmlSAX3EndElement(elementName.first, elementName.second);
             // return element;
         }
 
@@ -1023,7 +1035,7 @@ namespace rapidxml
                             // Skip and validate closing tag name
                             Ch *closing_name = text;
                             skip<node_name_pred, Flags>(text, endptr_);
-                            if (!internal::compare(elementName.value(), elementName.length(), closing_name, text - closing_name, true))
+                            if (!internal::compare(elementName.first, elementName.second, closing_name, text - closing_name, true))
                                 RAPIDXML_PARSE_ERROR("invalid closing tag name", text);
                         }
                         else
@@ -1054,7 +1066,7 @@ namespace rapidxml
 
                     // Data node
                 default:
-                    next_char = parse_and_append_data<Flags>(elementName, text, contents_start);
+                    next_char = parse_and_append_data<Flags>(/*elementName, */text, contents_start);
                     goto after_data_node;   // Bypass regular processing after data nodes
 
                 }
@@ -1123,7 +1135,7 @@ namespace rapidxml
                 if (!(Flags & parse_no_string_terminators))
                     value[valuesize] = 0;
 
-                handler_->xmlSAX3Attr(nullptr, 0/* no implement */, name, namesize, value, valuesize);
+                handler_->xmlSAX3Attr(name, namesize, value, valuesize);
 
                 // Skip whitespace after attribute value
                 skip<whitespace_pred, Flags>(text, endptr_);
