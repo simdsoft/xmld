@@ -161,6 +161,21 @@ void main()
     d.openb(std::move(data));
     printf("rapidxml: %lf seconds used!\n", (clock() - start) / (double)CLOCKS_PER_SEC);
 
+    /// rapidxml without data instrusive
+    data = read_file_data("address.xml");
+    start = clock();
+    xml_sax2_handler_impl handler2;
+    rapidxml::xml_sax3_parser<> parser2(&handler);
+    auto copy = data;
+    parser2.parse<>(&copy.front(), copy.size());
+    printf("rapidxml SAX parse(without data instrusive): %lf seconds used!\n", (clock() - start) / (double)CLOCKS_PER_SEC);
+
+    data = read_file_data("address.xml");
+    d.close();
+    start = clock();
+    d.openb(data.c_str(), data.size());
+    printf("rapidxml(without data instrusive): %lf seconds used!\n", (clock() - start) / (double)CLOCKS_PER_SEC);
+
     /// tinyxml2 performance test
     data = read_file_data("address.xml");
 
