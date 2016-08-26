@@ -2,6 +2,7 @@
 #include "../xmldrv3/vtd-xml/everything.h"
 #include "../xmldrv3/rapidxml/rapidxml_sax3.hpp"
 #include "tinyxml2.h"
+#include "pugixml.hpp"
 #include <iostream>
 #if defined(_DEBUG)
 #pragma comment(lib, "../Debug/xmldrv3.lib")
@@ -175,6 +176,15 @@ void main()
     start = clock();
     d.openb(data.c_str(), data.size());
     printf("rapidxml(without data instrusive): %lf seconds used!\n", (clock() - start) / (double)CLOCKS_PER_SEC);
+
+    /// test pugixml
+    /// tinyxml2 performance test
+    data = read_file_data("address.xml");
+
+    start = clock();
+    pugi::xml_document pugiDoc;
+    pugiDoc.load_buffer_inplace(&data.front(), data.length(), pugi::parse_minimal);
+    printf("pugixml: %lf seconds used!\n", (clock() - start) / (double)CLOCKS_PER_SEC);
 
     /// tinyxml2 performance test
     data = read_file_data("address.xml");
