@@ -3534,6 +3534,678 @@ PUGI__NS_BEGIN
 		}
 	};
 
+
+
+	/////////////// xml_sax3_parser ///////////
+	struct xml_sax3_parser
+	{
+		// xml_allocator alloc;
+		xml_allocator* alloc_state;
+		char_t* error_offset;
+		xml_parse_status error_status;
+
+		xml_sax3_handler* handler;
+
+		xml_sax3_parser(xml_sax3_handler* handler_) : handler(handler_), error_offset(0), error_status(status_ok)
+		{
+		}
+
+		~xml_sax3_parser()
+		{
+			// *alloc_state = alloc;
+		}
+
+		// DOCTYPE consists of nested sections of the following possible types:
+		// <!-- ... -->, <? ... ?>, "...", '...'
+		// <![...]]>
+		// <!...>
+		// First group can not contain nested groups
+		// Second group can contain nested groups of the same type
+		// Third group can contain all other groups
+		char_t* parse_doctype_primitive(char_t* s)
+		{
+			if (*s == '"' || *s == '\'')
+			{
+				// quoted string
+				char_t ch = *s++;
+				PUGI__SCANFOR(*s == ch);
+				if (!*s) PUGI__THROW_ERROR(status_bad_doctype, s);
+
+				s++;
+			}
+			else if (s[0] == '<' && s[1] == '?')
+			{
+				// <? ... ?>
+				s += 2;
+				PUGI__SCANFOR(s[0] == '?' && s[1] == '>'); // no need for ENDSWITH because ?> can't terminate proper doctype
+				if (!*s) PUGI__THROW_ERROR(status_bad_doctype, s);
+
+				s += 2;
+			}
+			else if (s[0] == '<' && s[1] == '!' && s[2] == '-' && s[3] == '-')
+			{
+				s += 4;
+				PUGI__SCANFOR(s[0] == '-' && s[1] == '-' && s[2] == '>'); // no need for ENDSWITH because --> can't terminate proper doctype
+				if (!*s) PUGI__THROW_ERROR(status_bad_doctype, s);
+
+				s += 3;
+			}
+			else PUGI__THROW_ERROR(status_bad_doctype, s);
+
+			return s;
+		}
+
+		char_t* parse_doctype_ignore(char_t* s)
+		{
+			size_t depth = 0;
+
+			assert(s[0] == '<' && s[1] == '!' && s[2] == '[');
+			s += 3;
+
+			while (*s)
+			{
+				if (s[0] == '<' && s[1] == '!' && s[2] == '[')
+				{
+					// nested ignore section
+					s += 3;
+					depth++;
+				}
+				else if (s[0] == ']' && s[1] == ']' && s[2] == '>')
+				{
+					// ignore section end
+					s += 3;
+
+					if (depth == 0)
+						return s;
+
+					depth--;
+				}
+				else s++;
+			}
+
+			PUGI__THROW_ERROR(status_bad_doctype, s);
+		}
+
+		char_t* parse_doctype_group(char_t* s, char_t endch)
+		{
+			size_t depth = 0;
+
+			assert((s[0] == '<' || s[0] == 0) && s[1] == '!');
+			s += 2;
+
+			while (*s)
+			{
+				if (s[0] == '<' && s[1] == '!' && s[2] != '-')
+				{
+					if (s[2] == '[')
+					{
+						// ignore
+						s = parse_doctype_ignore(s);
+						if (!s) return s;
+					}
+					else
+					{
+						// some control group
+						s += 2;
+						depth++;
+					}
+				}
+				else if (s[0] == '<' || s[0] == '"' || s[0] == '\'')
+				{
+					// unknown tag (forbidden), or some primitive group
+					s = parse_doctype_primitive(s);
+					if (!s) return s;
+				}
+				else if (*s == '>')
+				{
+					if (depth == 0)
+						return s;
+
+					depth--;
+					s++;
+				}
+				else s++;
+			}
+
+			if (depth != 0 || endch != '>') PUGI__THROW_ERROR(status_bad_doctype, s);
+
+			return s;
+		}
+
+		char_t* parse_exclamation(char_t* s, xml_node_struct* cursor, unsigned int optmsk, char_t endch)
+		{
+			// parse node contents, starting with exclamation mark
+			++s;
+
+			if (*s == '-') // '<!-...'
+			{
+				++s;
+
+				if (*s == '-') // '<!--...'
+				{
+					++s;
+
+					if (PUGI__OPTSET(parse_comments))
+					{
+						// SAX3: Ignore comment.
+						// PUGI__PUSHNODE(node_comment); // Append a new node on the tree.
+						cursor->value = s; // Save the offset.
+					}
+
+					if (PUGI__OPTSET(parse_eol) && PUGI__OPTSET(parse_comments))
+					{
+						s = strconv_comment(s, endch);
+
+						if (!s) PUGI__THROW_ERROR(status_bad_comment, cursor->value);
+					}
+					else
+					{
+						// Scan for terminating '-->'.
+						PUGI__SCANFOR(s[0] == '-' && s[1] == '-' && PUGI__ENDSWITH(s[2], '>'));
+						PUGI__CHECK_ERROR(status_bad_comment, s);
+
+						if (PUGI__OPTSET(parse_comments))
+							*s = 0; // Zero-terminate this segment at the first terminating '-'.
+
+						s += (s[2] == '>' ? 3 : 2); // Step over the '\0->'.
+					}
+				}
+				else PUGI__THROW_ERROR(status_bad_comment, s);
+			}
+			else if (*s == '[')
+			{
+				// '<![CDATA[...'
+				if (*++s == 'C' && *++s == 'D' && *++s == 'A' && *++s == 'T' && *++s == 'A' && *++s == '[')
+				{
+					++s;
+
+					if (PUGI__OPTSET(parse_cdata))
+					{
+						// SAX3: Ignore CDATA
+						// PUGI__PUSHNODE(node_cdata); // Append a new node on the tree.
+						cursor->value = s; // Save the offset.
+
+						if (PUGI__OPTSET(parse_eol))
+						{
+							s = strconv_cdata(s, endch);
+
+							if (!s) PUGI__THROW_ERROR(status_bad_cdata, cursor->value);
+						}
+						else
+						{
+							// Scan for terminating ']]>'.
+							PUGI__SCANFOR(s[0] == ']' && s[1] == ']' && PUGI__ENDSWITH(s[2], '>'));
+							PUGI__CHECK_ERROR(status_bad_cdata, s);
+
+							*s++ = 0; // Zero-terminate this segment.
+						}
+					}
+					else // Flagged for discard, but we still have to scan for the terminator.
+					{
+						// Scan for terminating ']]>'.
+						PUGI__SCANFOR(s[0] == ']' && s[1] == ']' && PUGI__ENDSWITH(s[2], '>'));
+						PUGI__CHECK_ERROR(status_bad_cdata, s);
+
+						++s;
+					}
+
+					s += (s[1] == '>' ? 2 : 1); // Step over the last ']>'.
+				}
+				else PUGI__THROW_ERROR(status_bad_cdata, s);
+			}
+			else if (s[0] == 'D' && s[1] == 'O' && s[2] == 'C' && s[3] == 'T' && s[4] == 'Y' && s[5] == 'P' && PUGI__ENDSWITH(s[6], 'E'))
+			{
+				s -= 2;
+
+				if (cursor->parent) PUGI__THROW_ERROR(status_bad_doctype, s);
+
+				char_t* mark = s + 9;
+
+				s = parse_doctype_group(s, endch);
+				if (!s) return s;
+
+				assert((*s == 0 && endch == '>') || *s == '>');
+				if (*s) *s++ = 0;
+
+				if (PUGI__OPTSET(parse_doctype))
+				{
+					while (PUGI__IS_CHARTYPE(*mark, ct_space)) ++mark;
+
+					// SAX3: Ignore doctype
+					// PUGI__PUSHNODE(node_doctype);
+
+					cursor->value = mark;
+				}
+			}
+			else if (*s == 0 && endch == '-') PUGI__THROW_ERROR(status_bad_comment, s);
+			else if (*s == 0 && endch == '[') PUGI__THROW_ERROR(status_bad_cdata, s);
+			else PUGI__THROW_ERROR(status_unrecognized_tag, s);
+
+			return s;
+		}
+
+		char_t* parse_question(char_t* s, xml_node_struct*& ref_cursor, unsigned int optmsk, char_t endch)
+		{
+			// load into registers
+			xml_node_struct* cursor = ref_cursor;
+			char_t ch = 0;
+
+			// parse node contents, starting with question mark
+			++s;
+
+			// read PI target
+			char_t* target = s;
+
+			if (!PUGI__IS_CHARTYPE(*s, ct_start_symbol)) PUGI__THROW_ERROR(status_bad_pi, s);
+
+			PUGI__SCANWHILE(PUGI__IS_CHARTYPE(*s, ct_symbol));
+			PUGI__CHECK_ERROR(status_bad_pi, s);
+
+			// determine node type; stricmp / strcasecmp is not portable
+			bool declaration = (target[0] | ' ') == 'x' && (target[1] | ' ') == 'm' && (target[2] | ' ') == 'l' && target + 3 == s;
+
+			if (declaration ? PUGI__OPTSET(parse_declaration) : PUGI__OPTSET(parse_pi))
+			{
+				if (declaration)
+				{
+					// disallow non top-level declarations
+					if (cursor->parent) PUGI__THROW_ERROR(status_bad_pi, s);
+
+					// SAX3: Ignore declaration.
+					// PUGI__PUSHNODE(node_declaration);
+				}
+				else
+				{
+					// SAX3: Ignore pi.
+					// PUGI__PUSHNODE(node_pi);
+				}
+
+				cursor->name = target;
+
+				PUGI__ENDSEG();
+
+				// parse value/attributes
+				if (ch == '?')
+				{
+					// empty node
+					if (!PUGI__ENDSWITH(*s, '>')) PUGI__THROW_ERROR(status_bad_pi, s);
+					s += (*s == '>');
+
+					PUGI__POPNODE();
+				}
+				else if (PUGI__IS_CHARTYPE(ch, ct_space))
+				{
+					PUGI__SKIPWS();
+
+					// scan for tag end
+					char_t* value = s;
+
+					PUGI__SCANFOR(s[0] == '?' && PUGI__ENDSWITH(s[1], '>'));
+					PUGI__CHECK_ERROR(status_bad_pi, s);
+
+					if (declaration)
+					{
+						// replace ending ? with / so that 'element' terminates properly
+						*s = '/';
+
+						// we exit from this function with cursor at node_declaration, which is a signal to parse() to go to LOC_ATTRIBUTES
+						s = value;
+					}
+					else
+					{
+						// store value and step over >
+						cursor->value = value;
+
+						PUGI__POPNODE();
+
+						PUGI__ENDSEG();
+
+						s += (*s == '>');
+					}
+				}
+				else PUGI__THROW_ERROR(status_bad_pi, s);
+			}
+			else
+			{
+				// scan for tag end
+				PUGI__SCANFOR(s[0] == '?' && PUGI__ENDSWITH(s[1], '>'));
+				PUGI__CHECK_ERROR(status_bad_pi, s);
+
+				s += (s[1] == '>' ? 2 : 1);
+			}
+
+			// store from registers
+			ref_cursor = cursor;
+
+			return s;
+		}
+
+		char_t* parse_tree(char_t* s, unsigned int optmsk, char_t endch)
+		{
+			strconv_attribute_t strconv_attribute = get_strconv_attribute(optmsk);
+			strconv_pcdata_t strconv_pcdata = get_strconv_pcdata(optmsk);
+
+			char_t ch = 0;
+			// xml_node_struct* cursor = nullptr;
+			char_t* mark = s;
+
+			while (*s != 0)
+			{
+				if (*s == '<')
+				{
+					++s;
+
+				LOC_TAG:
+					if (PUGI__IS_CHARTYPE(*s, ct_start_symbol)) // '<#...'
+					{
+						// SAX3: TODO: xmlStartElement.
+						// PUGI__PUSHNODE(node_element); // Append a new node to the tree.
+
+						const char* name = s;
+
+						PUGI__SCANWHILE_UNROLL(PUGI__IS_CHARTYPE(ss, ct_symbol)); // Scan for a terminator.
+						PUGI__ENDSEG(); // Save char in 'ch', terminate & step over.
+
+						if (ch == '>')
+						{
+							// end of tag
+							// handler->xmlSAX3StartElement(s);
+						}
+						else if (PUGI__IS_CHARTYPE(ch, ct_space))
+						{
+						LOC_ATTRIBUTES:
+							while (true)
+							{
+								PUGI__SKIPWS(); // Eat any whitespace.
+
+								if (PUGI__IS_CHARTYPE(*s, ct_start_symbol)) // <... #...
+								{
+									// SAX3: TODO: implement attribute.
+									//xml_attribute_struct* a = append_new_attribute(cursor, alloc); // Make space for this attribute.
+									//if (!a) PUGI__THROW_ERROR(status_out_of_memory, s);
+
+									// a->name = s; // Save the offset.
+
+									PUGI__SCANWHILE_UNROLL(PUGI__IS_CHARTYPE(ss, ct_symbol)); // Scan for a terminator.
+									PUGI__ENDSEG(); // Save char in 'ch', terminate & step over.
+
+									if (PUGI__IS_CHARTYPE(ch, ct_space))
+									{
+										PUGI__SKIPWS(); // Eat any whitespace.
+
+										ch = *s;
+										++s;
+									}
+
+									if (ch == '=') // '<... #=...'
+									{
+										PUGI__SKIPWS(); // Eat any whitespace.
+
+										if (*s == '"' || *s == '\'') // '<... #="...'
+										{
+											ch = *s; // Save quote char to avoid breaking on "''" -or- '""'.
+											++s; // Step over the quote.
+											// a->value = s; // Save the offset.
+
+											s = strconv_attribute(s, ch);
+
+											if (!s)
+												(void)0; // TODO: throw bad attribute PUGI__THROW_ERROR(status_bad_attribute, a->value);
+
+											// After this line the loop continues from the start;
+											// Whitespaces, / and > are ok, symbols and EOF are wrong,
+											// everything else will be detected
+											if (PUGI__IS_CHARTYPE(*s, ct_start_symbol)) PUGI__THROW_ERROR(status_bad_attribute, s);
+										}
+										else PUGI__THROW_ERROR(status_bad_attribute, s);
+									}
+									else PUGI__THROW_ERROR(status_bad_attribute, s);
+								}
+								else if (*s == '/')
+								{
+									++s;
+
+									if (*s == '>')
+									{
+										// SAX3: endElement
+										// PUGI__POPNODE();
+										s++;
+										break;
+									}
+									else if (*s == 0 && endch == '>')
+									{
+										// SAX3: endElement
+										// PUGI__POPNODE();
+										break;
+									}
+									else PUGI__THROW_ERROR(status_bad_start_element, s);
+								}
+								else if (*s == '>')
+								{
+									++s;
+
+									break;
+								}
+								else if (*s == 0 && endch == '>')
+								{
+									break;
+								}
+								else PUGI__THROW_ERROR(status_bad_start_element, s);
+							}
+
+							// !!!
+						}
+						else if (ch == '/') // '<#.../'
+						{
+							if (!PUGI__ENDSWITH(*s, '>')) PUGI__THROW_ERROR(status_bad_start_element, s);
+
+							// SAX3: TODO
+							// PUGI__POPNODE(); // Pop.
+
+							s += (*s == '>');
+						}
+						else if (ch == 0)
+						{
+							// we stepped over null terminator, backtrack & handle closing tag
+							--s;
+
+							if (endch != '>') PUGI__THROW_ERROR(status_bad_start_element, s);
+						}
+						else PUGI__THROW_ERROR(status_bad_start_element, s);
+					}
+					else if (*s == '/')
+					{
+						++s;
+
+						// SAX3: TODO
+						char_t* name = nullptr;// cursor->name;
+						if (!name) PUGI__THROW_ERROR(status_end_element_mismatch, s);
+
+						while (PUGI__IS_CHARTYPE(*s, ct_symbol))
+						{
+							if (*s++ != *name++) PUGI__THROW_ERROR(status_end_element_mismatch, s);
+						}
+
+						if (*name)
+						{
+							if (*s == 0 && name[0] == endch && name[1] == 0) PUGI__THROW_ERROR(status_bad_end_element, s);
+							else PUGI__THROW_ERROR(status_end_element_mismatch, s);
+						}
+
+						// SAX3: TODO
+						// PUGI__POPNODE(); // Pop.
+
+						PUGI__SKIPWS();
+
+						if (*s == 0)
+						{
+							if (endch != '>') PUGI__THROW_ERROR(status_bad_end_element, s);
+						}
+						else
+						{
+							if (*s != '>') PUGI__THROW_ERROR(status_bad_end_element, s);
+							++s;
+						}
+					}
+					else if (*s == '?') // '<?...'
+					{
+						// SAX3: TODO: parse question.
+						// s = parse_question(s, cursor, optmsk, endch);
+						//if (!s) return s;
+
+						//assert(cursor);
+						//if (PUGI__NODETYPE(cursor) == node_declaration) goto LOC_ATTRIBUTES;
+					}
+					else if (*s == '!') // '<!...'
+					{
+						// SAX3: TODO: parse exclamation.
+						// s = parse_exclamation(s, cursor, optmsk, endch);
+						if (!s) return s;
+					}
+					else if (*s == 0 && endch == '?') PUGI__THROW_ERROR(status_bad_pi, s);
+					else PUGI__THROW_ERROR(status_unrecognized_tag, s);
+				}
+				else
+				{
+					mark = s; // Save this offset while searching for a terminator.
+
+					PUGI__SKIPWS(); // Eat whitespace if no genuine PCDATA here.
+
+					if (*s == '<' || !*s)
+					{
+						// We skipped some whitespace characters because otherwise we would take the tag branch instead of PCDATA one
+						assert(mark != s);
+
+						if (!PUGI__OPTSET(parse_ws_pcdata | parse_ws_pcdata_single) || PUGI__OPTSET(parse_trim_pcdata))
+						{
+							continue;
+						}
+						else if (PUGI__OPTSET(parse_ws_pcdata_single))
+						{
+							// SAX3: TODO: parse_ws_pcdata_single
+							// if (s[0] != '<' || s[1] != '/' || cursor->first_child) continue;
+						}
+					}
+
+					if (!PUGI__OPTSET(parse_trim_pcdata))
+						s = mark;
+
+					// SAX3: 
+					if (/*cursor->parent ||*/ PUGI__OPTSET(parse_fragment))
+					{
+						// SAX3: 
+						if (PUGI__OPTSET(parse_embed_pcdata) /*&& cursor->parent && !cursor->first_child && !cursor->value*/)
+						{
+							// cursor->value = s; // Save the offset.
+						}
+						else
+						{
+							// SAX3: Ignore node_pcdata.
+							// PUGI__PUSHNODE(node_pcdata); // Append a new node on the tree.
+
+							// cursor->value = s; // Save the offset.
+
+							// PUGI__POPNODE(); // Pop since this is a standalone.
+						}
+
+						s = strconv_pcdata(s);
+
+						if (!*s) break;
+					}
+					else
+					{
+						PUGI__SCANFOR(*s == '<'); // '...<'
+						if (!*s) break;
+
+						++s;
+					}
+
+					// We're after '<'
+					goto LOC_TAG;
+				}
+			}
+
+			// SAX3: TODO: check that last tag is closed, 
+			// if (cursor != root) PUGI__THROW_ERROR(status_end_element_mismatch, s);
+
+			return s;
+		}
+
+#ifdef PUGIXML_WCHAR_MODE
+		static char_t* parse_skip_bom(char_t* s)
+		{
+			unsigned int bom = 0xfeff;
+			return (s[0] == static_cast<wchar_t>(bom)) ? s + 1 : s;
+		}
+#else
+		static char_t* parse_skip_bom(char_t* s)
+		{
+			return (s[0] == '\xef' && s[1] == '\xbb' && s[2] == '\xbf') ? s + 3 : s;
+		}
+#endif
+
+		static bool has_element_node_siblings(xml_node_struct* node)
+		{
+			while (node)
+			{
+				if (PUGI__NODETYPE(node) == node_element) return true;
+
+				node = node->next_sibling;
+			}
+
+			return false;
+		}
+
+		static xml_parse_result parse(char_t* buffer, size_t length, xml_sax3_handler* handler, unsigned int optmsk)
+		{
+			// early-out for empty documents
+			if (length == 0)
+				return make_parse_result(PUGI__OPTSET(parse_fragment) ? status_ok : status_no_document_element);
+
+			// get last child of the root before parsing
+			// xml_node_struct* last_root_child = root->first_child ? root->first_child->prev_sibling_c + 0 : 0;
+
+			// create parser on stack
+			xml_sax3_parser parser(handler);
+
+			// save last character and make buffer zero-terminated (speeds up parsing)
+			char_t endch = buffer[length - 1];
+			buffer[length - 1] = 0;
+
+			// skip BOM to make sure it does not end up as part of parse output
+			char_t* buffer_data = parse_skip_bom(buffer);
+
+			// perform actual parsing
+			parser.parse_tree(buffer_data, optmsk, endch);
+
+			xml_parse_result result = make_parse_result(parser.error_status, parser.error_offset ? parser.error_offset - buffer : 0);
+			assert(result.offset >= 0 && static_cast<size_t>(result.offset) <= length);
+
+			if (result)
+			{
+				// since we removed last character, we have to handle the only possible false positive (stray <)
+				if (endch == '<')
+					return make_parse_result(status_unrecognized_tag, length - 1);
+
+				// check if there are any element nodes parsed
+#if 0 // SAX3: TODO: check parse error condition.
+				xml_node_struct* first_root_child_parsed = last_root_child ? last_root_child->next_sibling + 0 : root->first_child + 0;
+
+				if (!PUGI__OPTSET(parse_fragment) && !has_element_node_siblings(first_root_child_parsed))
+					return make_parse_result(status_no_document_element, length - 1);
+#endif
+			}
+			else
+			{
+				// roll back offset if it occurs on a null terminator in the source buffer
+				if (result.offset > 0 && static_cast<size_t>(result.offset) == length - 1 && endch == 0)
+					result.offset--;
+			}
+
+			return result;
+		}
+	}; /* xml_sax3_parser */
+
 	// Output facilities
 	PUGI__FN xml_encoding get_write_native_encoding()
 	{
@@ -6975,6 +7647,38 @@ namespace pugi
 		reset();
 
 		return impl::load_buffer_impl(static_cast<impl::xml_document_struct*>(_root), _root, contents, size, options, encoding, true, false, &_buffer);
+	}
+
+	xml_parse_result xml_document::perform_sax3_parse(xml_sax3_handler* handler, void* contents, size_t size, unsigned int options, xml_encoding encoding )
+	{
+		// check input buffer
+		if (!contents && size) return impl::make_parse_result(status_io_error);
+
+		// get actual encoding
+		xml_encoding buffer_encoding = impl::get_buffer_encoding(encoding, contents, size);
+
+		// get private buffer
+		char_t* buffer = 0;
+		size_t length = 0;
+
+		// if (!impl::convert_buffer(buffer, length, buffer_encoding, contents, size, is_mutable)) return impl::make_parse_result(status_out_of_memory);
+
+		// delete original buffer if we performed a conversion
+		//if (own && buffer != contents && contents) impl::xml_memory::deallocate(contents);
+
+		// grab onto buffer if it's our buffer, user is responsible for deallocating contents himself
+		//if (own || buffer != contents) *out_buffer = buffer;
+
+		// store buffer for offset_debug
+		// doc->buffer = buffer;
+
+		// parse
+		xml_parse_result res = impl::xml_sax3_parser::parse(buffer, length, handler, options);
+
+		// remember encoding
+		res.encoding = buffer_encoding;
+
+		return res;
 	}
 
 	PUGI__FN xml_parse_result xml_document::load_buffer_inplace_own(void* contents, size_t size, unsigned int options, xml_encoding encoding)
