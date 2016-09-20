@@ -111,6 +111,23 @@ class xml_sax2_handler_impl : public rapidxml::xml_sax2_handler
     }
 };
 
+class xml_sax3_handler_impl : public rapidxml::xml_sax3_handler
+{
+public:
+	virtual ~xml_sax3_handler_impl() {}
+
+	virtual void xmlSAX3StartElement(char *name, size_t) {};
+
+	virtual void xmlSAX3Attr(const char* name, size_t,
+		const char* value, size_t) {};
+
+	virtual void xmlSAX3EndAttr() {};
+
+	virtual void xmlSAX3EndElement(const char *name, size_t) {};
+
+	virtual void xmlSAX3Text(const char *text, size_t len) {};
+};
+
 void main()
 {
 #if 0
@@ -152,39 +169,23 @@ void main()
 
     data = read_file_data("address.xml");
     start = clock();
-    xml_sax2_handler_impl handler;
-    rapidxml::xml_sax3_parser<> parser(&handler);
-    parser.parse<>(&data.front(), data.size());
-    printf("rapidxml SAX parse: %lf seconds used!\n", (clock() - start) / (double)CLOCKS_PER_SEC);
-
-    data = read_file_data("address.xml");
-    start = clock();
     d.openb(std::move(data));
     printf("rapidxml: %lf seconds used!\n", (clock() - start) / (double)CLOCKS_PER_SEC);
-
-    /// rapidxml without data instrusive
-    data = read_file_data("address.xml");
-    start = clock();
-    xml_sax2_handler_impl handler2;
-    rapidxml::xml_sax3_parser<> parser2(&handler);
-    auto copy = data;
-    parser2.parse<>(&copy.front(), copy.size());
-    printf("rapidxml SAX parse(without data instrusive): %lf seconds used!\n", (clock() - start) / (double)CLOCKS_PER_SEC);
-
-    data = read_file_data("address.xml");
-    d.close();
-    start = clock();
-    d.openb(data.c_str(), data.size());
-    printf("rapidxml(without data instrusive): %lf seconds used!\n", (clock() - start) / (double)CLOCKS_PER_SEC);
 
     /// test pugixml
     /// tinyxml2 performance test
     data = read_file_data("address.xml");
-
     start = clock();
     pugi::xml_document pugiDoc;
     pugiDoc.load_buffer_inplace(&data.front(), data.length(), pugi::parse_minimal);
     printf("pugixml: %lf seconds used!\n", (clock() - start) / (double)CLOCKS_PER_SEC);
+
+	data = read_file_data("address.xml");
+	start = clock();
+	xml_sax3_handler_impl handler;
+	rapidxml::xml_sax3_parser<> parser(&handler);
+	parser.parse<>(&data.front(), data.size());
+	printf("rapidxml SAX parse: %lf seconds used!\n", (clock() - start) / (double)CLOCKS_PER_SEC);
 
     /// tinyxml2 performance test
     data = read_file_data("address.xml");

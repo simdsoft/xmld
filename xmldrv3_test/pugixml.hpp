@@ -948,9 +948,29 @@ namespace pugi
 		const char* description() const;
 	};
 
+	class xml_sax3_handler
+	{
+	public:
+		virtual ~xml_sax3_handler() {}
+
+		virtual void xmlSAX3StartElement(char *name, size_t) = 0;
+
+		virtual void xmlSAX3Attr(const char* name, size_t,
+			const char* value, size_t) = 0;
+
+		virtual void xmlSAX3EndAttr() = 0;
+
+		virtual void xmlSAX3EndElement(const char *name, size_t) = 0;
+
+		virtual void xmlSAX3Text(const char *text, size_t len) = 0;
+	};
+
 	// Document class (DOM tree root)
 	class PUGIXML_CLASS xml_document: public xml_node
 	{
+	public:
+		static xml_parse_result perform_sax3_parse(xml_sax3_handler* handler, void* contents, size_t size, unsigned int options = parse_default, xml_encoding encoding = encoding_auto);
+
 	private:
 		char_t* _buffer;
 
