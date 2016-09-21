@@ -880,20 +880,16 @@ namespace rapidxml
 			{
 				++text;
 				if (*text != Ch('>')) {
-					if (*text == Ch('\0')) {
-						parse_result_ = parse_result::expected_close_tag;
-						return;
-					}
-					RAPIDXML_PARSE_ERROR("expected >", text);
+					parse_result_ = parse_result::expected_close_tag;
+					if (*text != 0)
+					    RAPIDXML_PARSE_ERROR("expected >", text);
 				}
-				++text;
+				else ++text;
 			}
 			else {
-				if (*text == Ch('\0')) {
-					parse_result_ = parse_result::expected_close_tag;
-					return;
-				}
-				RAPIDXML_PARSE_ERROR("expected >", text);
+			    parse_result_ = parse_result::expected_close_tag;
+				if (*text != 0)
+					RAPIDXML_PARSE_ERROR("expected >", text);
 			}
 
 			// Place zero terminator after name
@@ -1037,13 +1033,12 @@ namespace rapidxml
 						}
 						// Skip remaining whitespace after node name
 						skip<whitespace_pred, Flags>(text);
-						if (*text == Ch('\0')) {
-							parse_result_ = parse_result::expected_close_tag;
-							return;
+						if (*text != Ch('>')){
+						    parse_result_ = parse_result::expected_close_tag;
+							if (*text == 0) 
+							    RAPIDXML_PARSE_ERROR("expected >", text);
 						}
-						if (*text != Ch('>'))
-							RAPIDXML_PARSE_ERROR("expected >", text);
-						++text;     // Skip '>'
+						else ++text;     // Skip '>'
 						return;     // Node closed, finished parsing contents
 					}
 					else

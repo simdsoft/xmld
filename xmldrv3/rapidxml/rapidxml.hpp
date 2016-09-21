@@ -2116,7 +2116,7 @@ namespace rapidxml
 					if(*text != 0)
 				        RAPIDXML_PARSE_ERROR("expected >", text);
 				}
-                ++text;
+				else ++text;
             }
 			else {
 				parse_result_ = parse_result::expected_close_tag;
@@ -2268,7 +2268,7 @@ namespace rapidxml
 							if (*text != 0)
 								RAPIDXML_PARSE_ERROR("expected >", text);
 						}
-                        ++text;     // Skip '>'
+						else ++text;     // Skip '>'
                         return;     // Node closed, finished parsing contents
                     }
                     else
