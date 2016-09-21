@@ -3672,7 +3672,7 @@ PUGI__NS_BEGIN
 			return s;
 		}
 
-		char_t* parse_exclamation(char_t* s, xml_node_struct* cursor, unsigned int optmsk, char_t endch)
+		char_t* parse_exclamation(char_t* s,  unsigned int optmsk, char_t endch)
 		{
 			// parse node contents, starting with exclamation mark
 			++s;
@@ -3685,18 +3685,20 @@ PUGI__NS_BEGIN
 				{
 					++s;
 
+					char_t* value = nullptr;
 					if (PUGI__OPTSET(parse_comments))
 					{
 						// SAX3: Ignore comment.
 						// PUGI__PUSHNODE(node_comment); // Append a new node on the tree.
-						cursor->value = s; // Save the offset.
+						// cursor->value = s; // Save the offset.
+						value = s;
 					}
 
 					if (PUGI__OPTSET(parse_eol) && PUGI__OPTSET(parse_comments))
 					{
 						s = strconv_comment(s, endch);
 
-						if (!s) PUGI__THROW_ERROR(status_bad_comment, cursor->value);
+						if (!s) PUGI__THROW_ERROR(status_bad_comment, value);
 					}
 					else
 					{
@@ -3723,13 +3725,13 @@ PUGI__NS_BEGIN
 					{
 						// SAX3: Ignore CDATA
 						// PUGI__PUSHNODE(node_cdata); // Append a new node on the tree.
-						cursor->value = s; // Save the offset.
+					    auto value = s; // Save the offset.
 
 						if (PUGI__OPTSET(parse_eol))
 						{
 							s = strconv_cdata(s, endch);
 
-							if (!s) PUGI__THROW_ERROR(status_bad_cdata, cursor->value);
+							if (!s) PUGI__THROW_ERROR(status_bad_cdata, value);
 						}
 						else
 						{
@@ -3757,7 +3759,8 @@ PUGI__NS_BEGIN
 			{
 				s -= 2;
 
-				if (cursor->parent) PUGI__THROW_ERROR(status_bad_doctype, s);
+				// TODO: check for doctype, parent must be nullptr
+				// if (cursor->parent) PUGI__THROW_ERROR(status_bad_doctype, s);
 
 				char_t* mark = s + 9;
 
@@ -3774,7 +3777,7 @@ PUGI__NS_BEGIN
 					// SAX3: Ignore doctype
 					// PUGI__PUSHNODE(node_doctype);
 
-					cursor->value = mark;
+					// cursor->value = mark;
 				}
 			}
 			else if (*s == 0 && endch == '-') PUGI__THROW_ERROR(status_bad_comment, s);
@@ -3784,10 +3787,10 @@ PUGI__NS_BEGIN
 			return s;
 		}
 
-		char_t* parse_question(char_t* s, xml_node_struct*& ref_cursor, unsigned int optmsk, char_t endch)
+		char_t* parse_question(char_t* s,  unsigned int optmsk, char_t endch)
 		{
 			// load into registers
-			xml_node_struct* cursor = ref_cursor;
+			// xml_node_struct* cursor = ref_cursor;
 			char_t ch = 0;
 
 			// parse node contents, starting with question mark
@@ -3808,8 +3811,8 @@ PUGI__NS_BEGIN
 			{
 				if (declaration)
 				{
-					// disallow non top-level declarations
-					if (cursor->parent) PUGI__THROW_ERROR(status_bad_pi, s);
+					// TODO: disallow non top-level declarations
+					// if (cursor->parent) PUGI__THROW_ERROR(status_bad_pi, s);
 
 					// SAX3: Ignore declaration.
 					// PUGI__PUSHNODE(node_declaration);
@@ -3820,7 +3823,7 @@ PUGI__NS_BEGIN
 					// PUGI__PUSHNODE(node_pi);
 				}
 
-				cursor->name = target;
+				auto name = target;
 
 				PUGI__ENDSEG();
 
@@ -3831,7 +3834,7 @@ PUGI__NS_BEGIN
 					if (!PUGI__ENDSWITH(*s, '>')) PUGI__THROW_ERROR(status_bad_pi, s);
 					s += (*s == '>');
 
-					PUGI__POPNODE();
+					// PUGI__POPNODE();
 				}
 				else if (PUGI__IS_CHARTYPE(ch, ct_space))
 				{
@@ -3854,9 +3857,9 @@ PUGI__NS_BEGIN
 					else
 					{
 						// store value and step over >
-						cursor->value = value;
+						// cursor->value = value;
 
-						PUGI__POPNODE();
+						// PUGI__POPNODE();
 
 						PUGI__ENDSEG();
 
@@ -3875,7 +3878,7 @@ PUGI__NS_BEGIN
 			}
 
 			// store from registers
-			ref_cursor = cursor;
+			// ref_cursor = cursor;
 
 			return s;
 		}
@@ -3885,7 +3888,7 @@ PUGI__NS_BEGIN
 			strconv_attribute_t strconv_attribute = get_strconv_attribute(optmsk);
 			strconv_pcdata_t strconv_pcdata = get_strconv_pcdata(optmsk);
 
-			std::string symbol_check;
+			std::string symbol_check; // TODO: need store the cursor
 
 			char_t ch = 0;
 			// xml_node_struct* cursor = nullptr;
@@ -3917,8 +3920,6 @@ PUGI__NS_BEGIN
 						if (ch == '>')
 						{
 							// end of tag
-							// handler->xmlSAX3StartElement(s);
-							// xmlSAX3EndElement()
 						}
 						else if (PUGI__IS_CHARTYPE(ch, ct_space))
 						{
@@ -4035,9 +4036,10 @@ PUGI__NS_BEGIN
 						++s;
 
 						// SAX3: TODO
-						char_t* name = nullptr;// cursor->name;
+						char_t* name = s;// cursor->name;
 						if (!name) PUGI__THROW_ERROR(status_end_element_mismatch, s);
 
+#if 0 // disable check
 						while (PUGI__IS_CHARTYPE(*s, ct_symbol))
 						{
 							if (*s++ != *name++) PUGI__THROW_ERROR(status_end_element_mismatch, s);
@@ -4048,35 +4050,43 @@ PUGI__NS_BEGIN
 							if (*s == 0 && name[0] == endch && name[1] == 0) PUGI__THROW_ERROR(status_bad_end_element, s);
 							else PUGI__THROW_ERROR(status_end_element_mismatch, s);
 						}
-
+#endif
 						// SAX3: TODO
 						// PUGI__POPNODE(); // Pop.
+
+						while (PUGI__IS_CHARTYPE(*s, ct_symbol))
+						{
+							++s;// if (*s++ != *name++) PUGI__THROW_ERROR(status_end_element_mismatch, s);
+						}
 
 						PUGI__SKIPWS();
 
 						if (*s == 0)
 						{
 							if (endch != '>') PUGI__THROW_ERROR(status_bad_end_element, s);
+							handler->xmlSAX3EndElement(name, s - name);
 						}
 						else
 						{
 							if (*s != '>') PUGI__THROW_ERROR(status_bad_end_element, s);
+							handler->xmlSAX3EndElement(name, s - name);
 							++s;
 						}
 					}
 					else if (*s == '?') // '<?...'
 					{
 						// SAX3: TODO: parse question.
-						// s = parse_question(s, cursor, optmsk, endch);
-						//if (!s) return s;
+						s = parse_question(s, optmsk, endch);
+						if (!s) return s;
 
 						//assert(cursor);
 						//if (PUGI__NODETYPE(cursor) == node_declaration) goto LOC_ATTRIBUTES;
+						// goto LOC_ATTRIBUTES; // TODO: check, always regard as a valid node_declaration
 					}
 					else if (*s == '!') // '<!...'
 					{
 						// SAX3: TODO: parse exclamation.
-						// s = parse_exclamation(s, cursor, optmsk, endch);
+						s = parse_exclamation(s, optmsk, endch);
 						if (!s) return s;
 					}
 					else if (*s == 0 && endch == '?') PUGI__THROW_ERROR(status_bad_pi, s);
@@ -4109,7 +4119,7 @@ PUGI__NS_BEGIN
 
 					// SAX3: 
 					if (/*cursor->parent ||*/ PUGI__OPTSET(parse_fragment))
-					{
+					{ // Currently, SAX3 simplely skip, do not regard text it node
 						// SAX3: 
 						if (PUGI__OPTSET(parse_embed_pcdata) /*&& cursor->parent && !cursor->first_child && !cursor->value*/)
 						{
@@ -4133,6 +4143,9 @@ PUGI__NS_BEGIN
 					{
 						PUGI__SCANFOR(*s == '<'); // '...<'
 						if (!*s) break;
+
+						symbol_check.assign(mark, s - mark);
+						handler->xmlSAX3Text(mark, s - mark);
 
 						++s;
 					}
