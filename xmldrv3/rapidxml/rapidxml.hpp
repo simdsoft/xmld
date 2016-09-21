@@ -1411,33 +1411,31 @@ namespace rapidxml
             this->remove_all_nodes();
             this->remove_all_attributes();
 
+			// Parse BOM, if any
+			parse_bom<Flags>(text);
+
 			auto endch = text[length - 1];
 			text[length - 1] = 0;
 
-            // Parse BOM, if any
-            parse_bom<Flags>(text);
-
             // Parse children
 		_L_Loop:
-			{
-				// Skip whitespace before node
+			{	// Skip whitespace before node
 				skip<whitespace_pred, Flags>(text);
 				if (*text == 0)
 					goto _L_end;
 
-                // Parse and append new child
-                if (*text == Ch('<'))
-                {
-                    ++text;     // Skip '<'
-                    if (xml_node<Ch> *node = parse_node<Flags>(text))
-                        this->append_node(node);
-                }
-                else
-                    RAPIDXML_PARSE_ERROR("expected <", text);
+				// Parse and append new child
+				if (*text == Ch('<'))
+				{
+					++text;     // Skip '<'
+					if (xml_node<Ch> *node = parse_node<Flags>(text))
+						this->append_node(node);
+				}
+				else
+					RAPIDXML_PARSE_ERROR("expected <", text);
 				goto _L_Loop;
 			}
-
-		_L_end:
+		_L_end:;
 			// check parse result.
 			if (parse_result_ == parse_result::ok) {
 				if (endch == '<') {
@@ -2113,12 +2111,18 @@ namespace rapidxml
             else if (*text == Ch('/'))
             {
                 ++text;
-                if (*text != Ch('>'))
-                    RAPIDXML_PARSE_ERROR("expected >", text);
+				if (*text != Ch('>')) {
+					parse_result_ = parse_result::expected_close_tag;
+					if(*text != 0)
+				        RAPIDXML_PARSE_ERROR("expected >", text);
+				}
                 ++text;
             }
-            else
-                RAPIDXML_PARSE_ERROR("expected >", text);
+			else {
+				parse_result_ = parse_result::expected_close_tag;
+				if (*text != 0)
+					RAPIDXML_PARSE_ERROR("expected >", text);
+			}
 
             // Place zero terminator after name
             if (!(Flags & parse_no_string_terminators))
@@ -2259,8 +2263,11 @@ namespace rapidxml
                         }
                         // Skip remaining whitespace after node name
                         skip<whitespace_pred, Flags>(text);
-                        if (*text != Ch('>'))
-                            RAPIDXML_PARSE_ERROR("expected >", text);
+						if (*text != Ch('>')) {
+							parse_result_ = parse_result::expected_close_tag;
+							if (*text != 0)
+								RAPIDXML_PARSE_ERROR("expected >", text);
+						}
                         ++text;     // Skip '>'
                         return;     // Node closed, finished parsing contents
                     }
