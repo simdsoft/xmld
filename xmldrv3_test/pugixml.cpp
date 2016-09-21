@@ -3885,6 +3885,8 @@ PUGI__NS_BEGIN
 			strconv_attribute_t strconv_attribute = get_strconv_attribute(optmsk);
 			strconv_pcdata_t strconv_pcdata = get_strconv_pcdata(optmsk);
 
+			std::string symbol_check;
+
 			char_t ch = 0;
 			// xml_node_struct* cursor = nullptr;
 			char_t* mark = s;
@@ -3901,21 +3903,28 @@ PUGI__NS_BEGIN
 						// SAX3: TODO: xmlStartElement.
 						// PUGI__PUSHNODE(node_element); // Append a new node to the tree.
 
-						const char* name = s;
+						char* name = s;
 
 						PUGI__SCANWHILE_UNROLL(PUGI__IS_CHARTYPE(ss, ct_symbol)); // Scan for a terminator.
-						PUGI__ENDSEG(); // Save char in 'ch', terminate & step over.
+						
+						auto name_size = s - name;
 
+						handler->xmlSAX3StartElement(name, name_size);
+
+						PUGI__ENDSEG(); // Save char in 'ch', terminate & step over.
+						// handler->xmlSAX3StartElement(name);
+					    
 						if (ch == '>')
 						{
 							// end of tag
 							// handler->xmlSAX3StartElement(s);
+							// xmlSAX3EndElement()
 						}
 						else if (PUGI__IS_CHARTYPE(ch, ct_space))
 						{
 						LOC_ATTRIBUTES:
 							while (true)
-							{
+							{ // parse attributes
 								PUGI__SKIPWS(); // Eat any whitespace.
 
 								if (PUGI__IS_CHARTYPE(*s, ct_start_symbol)) // <... #...
@@ -3923,10 +3932,11 @@ PUGI__NS_BEGIN
 									// SAX3: TODO: implement attribute.
 									//xml_attribute_struct* a = append_new_attribute(cursor, alloc); // Make space for this attribute.
 									//if (!a) PUGI__THROW_ERROR(status_out_of_memory, s);
-
-									// a->name = s; // Save the offset.
+									
+									auto attr_name = s; // Save the offset.
 
 									PUGI__SCANWHILE_UNROLL(PUGI__IS_CHARTYPE(ss, ct_symbol)); // Scan for a terminator.
+									auto attr_name_size = s - attr_name;
 									PUGI__ENDSEG(); // Save char in 'ch', terminate & step over.
 
 									if (PUGI__IS_CHARTYPE(ch, ct_space))
@@ -3945,17 +3955,18 @@ PUGI__NS_BEGIN
 										{
 											ch = *s; // Save quote char to avoid breaking on "''" -or- '""'.
 											++s; // Step over the quote.
-											// a->value = s; // Save the offset.
+											auto attr_value = s;// a->value = s; // Save the offset.
 
 											s = strconv_attribute(s, ch);
 
 											if (!s)
-												(void)0; // TODO: throw bad attribute PUGI__THROW_ERROR(status_bad_attribute, a->value);
+												PUGI__THROW_ERROR(status_bad_attribute, attr_value);
 
 											// After this line the loop continues from the start;
 											// Whitespaces, / and > are ok, symbols and EOF are wrong,
 											// everything else will be detected
 											if (PUGI__IS_CHARTYPE(*s, ct_start_symbol)) PUGI__THROW_ERROR(status_bad_attribute, s);
+											handler->xmlSAX3Attr(attr_name, attr_name_size, attr_value, s - attr_value - 1);
 										}
 										else PUGI__THROW_ERROR(status_bad_attribute, s);
 									}
@@ -3969,6 +3980,8 @@ PUGI__NS_BEGIN
 									{
 										// SAX3: endElement
 										// PUGI__POPNODE();
+										handler->xmlSAX3EndAttr();
+										handler->xmlSAX3EndElement(name, name_size);
 										s++;
 										break;
 									}
@@ -3976,6 +3989,8 @@ PUGI__NS_BEGIN
 									{
 										// SAX3: endElement
 										// PUGI__POPNODE();
+										handler->xmlSAX3EndAttr();
+										handler->xmlSAX3EndElement(name, name_size);
 										break;
 									}
 									else PUGI__THROW_ERROR(status_bad_start_element, s);
@@ -3994,6 +4009,8 @@ PUGI__NS_BEGIN
 							}
 
 							// !!!
+							handler->xmlSAX3EndAttr();
+							// handler->xmlSAX3EndElement(name, name_size);
 						}
 						else if (ch == '/') // '<#.../'
 						{
@@ -4001,7 +4018,7 @@ PUGI__NS_BEGIN
 
 							// SAX3: TODO
 							// PUGI__POPNODE(); // Pop.
-
+							handler->xmlSAX3EndElement(name, name_size);
 							s += (*s == '>');
 						}
 						else if (ch == 0)
@@ -7658,8 +7675,8 @@ namespace pugi
 		xml_encoding buffer_encoding = impl::get_buffer_encoding(encoding, contents, size);
 
 		// get private buffer
-		char_t* buffer = 0;
-		size_t length = 0;
+		char_t* buffer = (char_t*)contents;
+		size_t length = size;
 
 		// if (!impl::convert_buffer(buffer, length, buffer_encoding, contents, size, is_mutable)) return impl::make_parse_result(status_out_of_memory);
 

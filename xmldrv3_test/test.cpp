@@ -128,6 +128,25 @@ public:
 	virtual void xmlSAX3Text(const char *text, size_t len) {};
 };
 
+
+class xml_sax3_handler_impl_pugi : public pugi::xml_sax3_handler
+{
+public:
+	virtual ~xml_sax3_handler_impl_pugi() {}
+
+	virtual void xmlSAX3StartElement(char *name, size_t) {};
+
+	virtual void xmlSAX3Attr(const char* name, size_t,
+		const char* value, size_t) {};
+
+	virtual void xmlSAX3EndAttr() {};
+
+	virtual void xmlSAX3EndElement(const char *name, size_t) {};
+
+	virtual void xmlSAX3Text(const char *text, size_t len) {};
+};
+
+
 void main()
 {
 #if 0
@@ -167,6 +186,23 @@ void main()
     strlen(data.c_str());
     printf("strlen: %lf seconds used!\n", (clock() - start) / (double)CLOCKS_PER_SEC);
 
+	data = read_file_data("address.xml");
+	start = clock();
+	xml_sax3_handler_impl handler;
+	rapidxml::xml_sax3_parser<> parser(&handler);
+
+	//data = "<root><hello>abc</hello></root>";
+
+	parser.parse<>(&data.front(), data.size());
+	printf("rapidxml SAX parse: %lf seconds used!\n", (clock() - start) / (double)CLOCKS_PER_SEC);
+
+	data = read_file_data("address.xml");
+	start = clock();
+	xml_sax3_handler_impl_pugi handler2;
+	pugi::xml_document::perform_sax3_parse(&handler2, &data.front(), data.size());
+	// parser.parse<>(&data.front(), data.size());
+	printf("pugixml SAX parse: %lf seconds used!\n", (clock() - start) / (double)CLOCKS_PER_SEC);
+
     data = read_file_data("address.xml");
     start = clock();
     d.openb(std::move(data));
@@ -179,13 +215,6 @@ void main()
     pugi::xml_document pugiDoc;
     pugiDoc.load_buffer_inplace(&data.front(), data.length(), pugi::parse_minimal);
     printf("pugixml: %lf seconds used!\n", (clock() - start) / (double)CLOCKS_PER_SEC);
-
-	data = read_file_data("address.xml");
-	start = clock();
-	xml_sax3_handler_impl handler;
-	rapidxml::xml_sax3_parser<> parser(&handler);
-	parser.parse<>(&data.front(), data.size());
-	printf("rapidxml SAX parse: %lf seconds used!\n", (clock() - start) / (double)CLOCKS_PER_SEC);
 
     /// tinyxml2 performance test
     data = read_file_data("address.xml");
