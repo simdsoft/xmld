@@ -1035,7 +1035,7 @@ namespace rapidxml
 						skip<whitespace_pred, Flags>(text);
 						if (*text != Ch('>')){
 						    parse_result_ = parse_result::expected_close_tag;
-							if (*text == 0) 
+							if (*text != 0) 
 							    RAPIDXML_PARSE_ERROR("expected >", text);
 						}
 						else ++text;     // Skip '>'
