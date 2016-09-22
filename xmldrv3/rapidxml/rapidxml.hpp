@@ -1377,11 +1377,11 @@ namespace rapidxml
     class xml_document : public xml_node<Ch>, public memory_pool<Ch>
     {
         enum class parse_result
-		{
-			ok,
-			expected_close_tag,
-		};
-		parse_result parse_result_ = parse_result::ok;
+        {
+            ok,
+            expected_close_tag,
+        };
+        parse_result parse_result_ = parse_result::ok;
     public:
 
         //! Constructs empty XML document
@@ -1391,9 +1391,9 @@ namespace rapidxml
         }
 
 
-		//! Parses zero-terminated XML string according to given flags.
-		//! Passed string will be modified by the parser, unless rapidxml::parse_non_destructive flag is used.
-		//! The string must persist for the lifetime of the document.
+        //! Parses zero-terminated XML string according to given flags.
+        //! Passed string will be modified by the parser, unless rapidxml::parse_non_destructive flag is used.
+        //! The string must persist for the lifetime of the document.
         //! In case of error, rapidxml::parse_error exception will be thrown.
         //! <br><br>
         //! If you want to parse contents of a file, you must first load the file into the memory, and pass pointer to its beginning.
@@ -1403,51 +1403,51 @@ namespace rapidxml
         //! Each new call to parse removes previous nodes and attributes (if any), but does not clear memory pool.
         //! \param text XML data to parse; pointer is non-const to denote fact that this data may be modified by the parser.
         template<int Flags>
-		void parse(Ch *text, int length)
-		{
+        void parse(Ch *text, int length)
+        {
             assert(text);
 
             // Remove current contents
             this->remove_all_nodes();
             this->remove_all_attributes();
 
-			// Parse BOM, if any
-			parse_bom<Flags>(text);
+            // Parse BOM, if any
+            parse_bom<Flags>(text);
 
-			auto endch = text[length - 1];
-			text[length - 1] = 0;
+            auto endch = text[length - 1];
+            text[length - 1] = 0;
 
             // Parse children
-		_L_Loop:
-			{	// Skip whitespace before node
-				skip<whitespace_pred, Flags>(text);
-				if (*text == 0)
-					goto _L_end;
+        _L_Loop:
+            {	// Skip whitespace before node
+                skip<whitespace_pred, Flags>(text);
+                if (*text == 0)
+                    goto _L_end;
 
-				// Parse and append new child
-				if (*text == Ch('<'))
-				{
-					++text;     // Skip '<'
-					if (xml_node<Ch> *node = parse_node<Flags>(text))
-						this->append_node(node);
-				}
-				else
-					RAPIDXML_PARSE_ERROR("expected <", text);
-				goto _L_Loop;
-			}
-		_L_end:;
-			// check parse result.
-			if (parse_result_ == parse_result::ok) {
-				if (endch == '<') {
-					RAPIDXML_PARSE_ERROR("unrecognized tag", text);
-				}
-			}
-			else { // parse_result_ == parse_result::expected_close_tag
-				if (endch != '>') {
-					RAPIDXML_PARSE_ERROR("expected >", text);
-				}
-			}
-		}
+                // Parse and append new child
+                if (*text == Ch('<'))
+                {
+                    ++text;     // Skip '<'
+                    if (xml_node<Ch> *node = parse_node<Flags>(text))
+                        this->append_node(node);
+                }
+                else
+                    RAPIDXML_PARSE_ERROR("expected <", text);
+                goto _L_Loop;
+            }
+        _L_end:;
+            // check parse result.
+            if (parse_result_ == parse_result::ok) {
+                if (endch == '<') {
+                    RAPIDXML_PARSE_ERROR("unrecognized tag", text);
+                }
+            }
+            else { // parse_result_ == parse_result::expected_close_tag
+                if (endch != '>') {
+                    RAPIDXML_PARSE_ERROR("expected >", text);
+                }
+            }
+        }
 
         //! Clears the document by deleting all nodes and clearing the memory pool.
         //! All nodes owned by document pool are destroyed.
@@ -1592,15 +1592,15 @@ namespace rapidxml
             }
         }
 
-		// Skip characters until predicate evaluates to true
-		template<class StopPred, int Flags>
-		static void skip(Ch *&text)
-		{
-			Ch *tmp = text;
-			while (StopPred::test(*tmp))
-				++tmp;
-			text = tmp;
-		}
+        // Skip characters until predicate evaluates to true
+        template<class StopPred, int Flags>
+        static void skip(Ch *&text)
+        {
+            Ch *tmp = text;
+            while (StopPred::test(*tmp))
+                ++tmp;
+            text = tmp;
+        }
 
         // Skip characters until predicate evaluates to true while doing the following:
         // - replacing XML character entity references with proper characters (&apos; &amp; &quot; &lt; &gt; &#...;)
@@ -2111,18 +2111,18 @@ namespace rapidxml
             else if (*text == Ch('/'))
             {
                 ++text;
-				if (*text != Ch('>')) {
-					parse_result_ = parse_result::expected_close_tag;
-					if(*text != 0)
-				        RAPIDXML_PARSE_ERROR("expected >", text);
-				}
-				else ++text;
+                if (*text != Ch('>')) {
+                    parse_result_ = parse_result::expected_close_tag;
+                    if (*text != 0)
+                        RAPIDXML_PARSE_ERROR("expected >", text);
+                }
+                else ++text;
             }
-			else {
-				parse_result_ = parse_result::expected_close_tag;
-				if (*text != 0)
-					RAPIDXML_PARSE_ERROR("expected >", text);
-			}
+            else {
+                parse_result_ = parse_result::expected_close_tag;
+                if (*text != 0)
+                    RAPIDXML_PARSE_ERROR("expected >", text);
+            }
 
             // Place zero terminator after name
             if (!(Flags & parse_no_string_terminators))
@@ -2263,12 +2263,12 @@ namespace rapidxml
                         }
                         // Skip remaining whitespace after node name
                         skip<whitespace_pred, Flags>(text);
-						if (*text != Ch('>')) {
-							parse_result_ = parse_result::expected_close_tag;
-							if (*text != 0)
-								RAPIDXML_PARSE_ERROR("expected >", text);
-						}
-						else ++text;     // Skip '>'
+                        if (*text != Ch('>')) {
+                            parse_result_ = parse_result::expected_close_tag;
+                            if (*text != 0)
+                                RAPIDXML_PARSE_ERROR("expected >", text);
+                        }
+                        else ++text;     // Skip '>'
                         return;     // Node closed, finished parsing contents
                     }
                     else
