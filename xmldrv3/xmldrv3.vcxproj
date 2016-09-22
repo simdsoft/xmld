@@ -149,7 +149,10 @@
     <ClInclude Include="nsconv.h" />
     <ClInclude Include="politedef.h" />
     <ClInclude Include="rapidxml\rapidxml.hpp" />
+    <ClInclude Include="rapidxml\rapidxml_iterators.hpp" />
+    <ClInclude Include="rapidxml\rapidxml_print.hpp" />
     <ClInclude Include="rapidxml\rapidxml_sax3.hpp" />
+    <ClInclude Include="rapidxml\rapidxml_utils.hpp" />
     <ClInclude Include="unreal_string.h" />
     <ClInclude Include="xmldrv.h" />
   </ItemGroup>

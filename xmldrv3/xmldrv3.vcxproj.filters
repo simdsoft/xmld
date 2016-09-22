@@ -41,6 +41,15 @@
     <ClInclude Include="rapidxml\rapidxml.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="rapidxml\rapidxml_iterators.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="rapidxml\rapidxml_print.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="rapidxml\rapidxml_utils.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="xmldrv.cpp">
