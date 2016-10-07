@@ -14,6 +14,8 @@
 #include <new>          // For placement new
 #endif
 
+#include "object_pool.h"
+
 // On MSVC, disable "conditional expression is constant" warning (level 4). 
 // This warning is almost impossible to avoid with certain types of templated code
 #ifdef _MSC_VER
@@ -380,7 +382,6 @@ namespace rapidxml
     template<class Ch = char>
     class memory_pool
     {
-
     public:
 
         //! \cond internal
@@ -418,7 +419,7 @@ namespace rapidxml
             const Ch *name = 0, const Ch *value = 0,
             std::size_t name_size = 0, std::size_t value_size = 0)
         {
-            void *memory = allocate_aligned(sizeof(xml_node<Ch>));
+            void *memory = nodes_pool.get(); // allocate_aligned(sizeof(xml_node<Ch>));
             xml_node<Ch> *node = new(memory) xml_node<Ch>(type);
             if (name)
             {
@@ -451,7 +452,7 @@ namespace rapidxml
         xml_attribute<Ch> *allocate_attribute(const Ch *name = 0, const Ch *value = 0,
             std::size_t name_size = 0, std::size_t value_size = 0)
         {
-            void *memory = allocate_aligned(sizeof(xml_attribute<Ch>));
+            void *memory = attributes_pool.get();// allocate_aligned(sizeof(xml_attribute<Ch>));
             xml_attribute<Ch> *attribute = new(memory) xml_attribute<Ch>;
             if (name)
             {
@@ -538,6 +539,8 @@ namespace rapidxml
                     delete[] m_begin;
                 m_begin = previous_begin;
             }
+            attributes_pool.cleanup();
+            nodes_pool.cleanup();
             init();
         }
 
@@ -641,6 +644,9 @@ namespace rapidxml
         char m_static_memory[RAPIDXML_STATIC_POOL_SIZE];    // Static raw memory
         alloc_func *m_alloc_func;                           // Allocator function, or 0 if default is to be used
         free_func *m_free_func;                             // Free function, or 0 if default is to be used
+
+        purelib::gc::object_pool<xml_attribute<Ch>, 512> attributes_pool;
+        purelib::gc::object_pool<xml_node<Ch>, 512> nodes_pool;
     };
 
     ///////////////////////////////////////////////////////////////////////////
