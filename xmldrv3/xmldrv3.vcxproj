@@ -148,6 +148,8 @@
     <ClInclude Include="container_helper.h" />
     <ClInclude Include="nsconv.h" />
     <ClInclude Include="politedef.h" />
+    <ClInclude Include="pugixml\pugiconfig.hpp" />
+    <ClInclude Include="pugixml\pugixml.hpp" />
     <ClInclude Include="rapidxml\rapidxml.hpp" />
     <ClInclude Include="rapidxml\rapidxml_iterators.hpp" />
     <ClInclude Include="rapidxml\rapidxml_print.hpp" />
@@ -157,6 +159,7 @@
     <ClInclude Include="xmldrv.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="pugixml\pugixml.cpp" />
     <ClCompile Include="xmldrv.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

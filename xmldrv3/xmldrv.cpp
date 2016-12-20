@@ -1187,14 +1187,14 @@ inline bool is_element(xml4wNodePtr ptr)
 
 element element::clone(void) const
 { // pugixml does not implement
-	return nullptr;
+	return element(nullptr);
 }
 
 element element::get_parent(void) const
 {
 	if (is_good())
-		return simplify(detail(_Mynode).parent());
-	return nullptr;
+		return element(simplify(detail(_Mynode).parent()));
+	return element(nullptr);
 }
 
 element element::get_first_child(void) const
@@ -1206,7 +1206,7 @@ element element::get_first_child(void) const
 		is_element(_Mynode),
 		break
 	);
-	return ptr;
+	return element(nullptr);
 }
 
 element element::get_prev_sibling(void) const
@@ -1218,7 +1218,7 @@ element element::get_prev_sibling(void) const
 		is_element(_Mynode),
 		break
 	);
-	return ptr;
+	return element(nullptr);
 }
 
 element element::get_next_sibling(void) const
@@ -1230,18 +1230,18 @@ element element::get_next_sibling(void) const
 		is_element(_Mynode),
 		break
 	);
-	return ptr;
+	return element(nullptr);
 }
 
-std::string element::get_name(void) const
+vstring element::get_name(void) const
 {
 	if (is_good()) {
 		return detail(_Mynode).name();
 	}
-	return "null";
+	return "";
 }
 
-std::string element::get_value(const char* default_value) const
+vstring element::get_value(const vstring& default_value) const
 {
 	if (is_good())
 	{
@@ -1254,13 +1254,13 @@ std::string element::get_value(const char* default_value) const
 }
 
 
-std::string element::get_attribute_value(const char* name, const char* default_value) const
+std::string element::get_attribute_value(const vstring& name, const vstring& default_value) const
 {
 	if (is_good())
 	{
 		// real detail(_Mynode) pointer is internal struct pointer
 
-		auto attr = detail(_Mynode).attribute(name);
+		auto attr = detail(_Mynode).attribute(name.c_str());
 		if (!attr.empty())
 		{
 			return attr.value();
@@ -1273,20 +1273,20 @@ std::string element::get_attribute_value(const char* name, const char* default_v
 	return default_value;
 }
 
-void element::set_value(const char* value)
+void element::set_value(const vstring& value)
 {
 	if (is_good())
-		detail(_Mynode).set_value(value);
+		detail(_Mynode).set_value(value.c_str());
 }
 
-void element::set_attribute_value(const char* name, const char* value)
+void element::set_attribute_value(const vstring& name, const vstring& value)
 {
 	if (is_good()) {
-		auto attrib = detail(_Mynode).attribute(name);
+		auto attrib = detail(_Mynode).attribute(name.c_str());
 		if (!attrib.empty())
-			attrib.set_value(value);
+			attrib.set_value(value.c_str());
 		else {
-			detail(_Mynode).append_attribute(name).set_value(value);
+			detail(_Mynode).append_attribute(name.c_str()).set_value(value.c_str());
 		}
 	}
 }
@@ -1295,10 +1295,10 @@ void element::remove_children(void)
 {
 }
 
-void element::remove_children(const char* name)
+void element::remove_children(const vstring& name)
 {
 	if (is_good())
-		detail(_Mynode).remove_child(name);
+		detail(_Mynode).remove_child(name.c_str());
 }
 
 void element::remove_self(void)
@@ -1322,14 +1322,14 @@ std::string element::to_string(bool formatted) const
 	return "";
 }
 
-element element::add_child(const char* name, const char* value) const
+element element::add_child(const vstring& name, const vstring& value) const
 {
 	if (is_good()) {
-		auto newe = detail(_Mynode).append_child(name);
-		newe.set_value(value);
-		return simplify(newe);
+		auto newe = detail(_Mynode).append_child(name.c_str());
+		newe.set_value(value.c_str());
+		return element(simplify(newe));
 	}
-	return nullptr;
+	return element(nullptr);
 }
 
 
@@ -1341,7 +1341,23 @@ struct xml4wDoc
 	pugi::xml_document doc;
 };
 
-bool document::open(const char* filename)
+bool document::open(const char* name, const char* mode, int namelen)
+{
+	if (0 == _stricmp(mode, "#memory")) {
+		return openn(name);
+	}
+	else if (0 == _stricmp(mode, "#buffer")) {
+		return openb(name, namelen);
+	}
+	else if (0 == _stricmp(mode, "#disk") || 0 == _stricmp(mode, "#file"))
+	{
+		return openf(name);
+	}
+	else
+		return false;
+}
+
+bool document::openf(const char* filename)
 {
 	if (!is_open()) {
 		this->impl_ = new (std::nothrow) xml4wDoc();
@@ -1360,15 +1376,7 @@ bool document::open(const char* filename)
 	return is_open();
 }
 
-bool document::open(const char* filename, const char* rootname)
-{
-	if (!is_open()) {
-		// TODO: impl pugi
-	}
-	return is_open();
-}
-
-bool document::open(const char* xmlstring, int length)
+bool document::openb(const char* xmlstring, int length)
 {
 	if (!is_open()) {
 		this->impl_ = new (std::nothrow) xml4wDoc();
@@ -1379,11 +1387,25 @@ bool document::open(const char* xmlstring, int length)
 	return is_open();
 }
 
-element document::root(void)
+bool document::openn(const char* filename, const char* rootname)
+{
+	if (!is_open()) {
+		// TODO: impl pugi
+	    char buffer[SZ(4,k)];
+		auto length = sprintf(buffer, "<%s />", rootname);
+		this->impl_ = new (std::nothrow) xml4wDoc();
+		if (this->impl_)
+			if (!this->impl_->doc.load_buffer(buffer, length))
+				close();
+	}
+	return is_open();
+}
+
+element document::root(void) const
 {
 	if (is_open())
-		return simplify(impl_->doc.root().first_child());
-	return nullptr;
+		return element(simplify(impl_->doc.root().first_child()));
+	return element(nullptr);
 }
 
 void document::save(bool formatted) const

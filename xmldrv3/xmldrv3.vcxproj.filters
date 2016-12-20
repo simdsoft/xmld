@@ -13,6 +13,15 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="3rd">
+      <UniqueIdentifier>{bb3af68d-43aa-4267-b32d-87a56b24bab4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rd\rapidxml">
+      <UniqueIdentifier>{3ab4a059-31fa-4c5e-86d5-9b6e0c0ecb55}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rd\pugixml">
+      <UniqueIdentifier>{5cb81189-b593-4c6a-81aa-334d03186394}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="xmldrv.inl">
@@ -35,9 +44,6 @@
     <ClInclude Include="unreal_string.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="rapidxml\rapidxml_sax3.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="rapidxml\rapidxml.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -50,10 +56,22 @@
     <ClInclude Include="rapidxml\rapidxml_utils.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="rapidxml\rapidxml_sax3.hpp">
+      <Filter>3rd\rapidxml</Filter>
+    </ClInclude>
+    <ClInclude Include="pugixml\pugiconfig.hpp">
+      <Filter>3rd\pugixml</Filter>
+    </ClInclude>
+    <ClInclude Include="pugixml\pugixml.hpp">
+      <Filter>3rd\pugixml</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="xmldrv.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="pugixml\pugixml.cpp">
+      <Filter>3rd\pugixml</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
