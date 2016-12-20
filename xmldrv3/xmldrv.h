@@ -85,8 +85,8 @@
 #undef _USING_RAPIDXML
 #undef _USING_PUGIXML
 #undef _USING_VTDXML
-// #define _USING_RAPIDXML 1
-#define _USING_PUGIXML 1
+#define _USING_RAPIDXML 1
+// #define _USING_PUGIXML 1
 
 #if _USE_IN_COCOS2DX
 #include <cocos2d.h>

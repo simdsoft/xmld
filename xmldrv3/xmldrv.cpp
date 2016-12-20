@@ -1387,11 +1387,22 @@ bool document::openb(const char* xmlstring, int length)
 	return is_open();
 }
 
+bool document::openb(std::string&& xmlstring)
+{
+	if (!is_open()) {
+		this->impl_ = new (std::nothrow) xml4wDoc();
+		if (this->impl_)
+			if (!this->impl_->doc.load_buffer_inplace(&xmlstring.front(), xmlstring.size()))
+				close();
+	}
+	return is_open();
+}
+
 bool document::openn(const char* filename, const char* rootname)
 {
 	if (!is_open()) {
 		// TODO: impl pugi
-	    char buffer[SZ(4,k)];
+		char buffer[SZ(4, k)] = { 0 };
 		auto length = sprintf(buffer, "<%s />", rootname);
 		this->impl_ = new (std::nothrow) xml4wDoc();
 		if (this->impl_)

@@ -174,7 +174,6 @@
     <ClCompile Include="..\xmldrv3\vtd-xml\XMLModifier.cpp" />
     <ClCompile Include="..\xmldrv3\vtd-xml\xpathParser.tab.cc" />
     <ClCompile Include="..\xmldrv3\vtd-xml\xpath_driver.cc" />
-    <ClCompile Include="pugixml.cpp" />
     <ClCompile Include="test.cpp" />
     <ClCompile Include="tinyxml2.cpp" />
   </ItemGroup>
