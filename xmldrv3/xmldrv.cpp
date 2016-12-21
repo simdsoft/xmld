@@ -757,7 +757,7 @@ bool document::openf(const char* filename)
 #if _USE_IN_COCOS2DX
 		std::string tempData = cocos2d::FileUtils::getInstance()->getStringFromFile(filename);
 #else
-		std::string tempData = read_file_data(impl_->filename.c_str());
+		std::string tempData = read_file_data(filename);
 #endif
 		if (tempData.empty())
 			return false;

@@ -235,6 +235,8 @@ public:
 
 void main()
 {
+	xmld::document d1;
+	d1.openf("crash1.xml");
 #if 0
     xmldrv::document doc("test.xml", "#memory"); // mode: "#disk", "#buffer", "#memory";
 
