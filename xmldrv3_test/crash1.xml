@@ -1,8 +1,0 @@
-<ipconfig>
-  <ip>
-    <ipv4>172.16.2.48</ipv4>
-    <mask>255.255.255.0</mask>
-    <gateway>172.16.2.1</gateway>
-    <dns>114.114.114.114</dns>
-  </ip>
-</ipconfig>

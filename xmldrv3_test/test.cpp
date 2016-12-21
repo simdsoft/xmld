@@ -237,6 +237,9 @@ void main()
 {
 	xmld::document d1;
 	d1.openf("crash1.xml");
+	d1.root()["ip"].cforeach([](const xmld::element& item) {
+		printf("name:%s, value:%s\n", item.get_name().c_str(), item.get_value("").c_str());
+	});
 #if 0
     xmldrv::document doc("test.xml", "#memory"); // mode: "#disk", "#buffer", "#memory";
 
