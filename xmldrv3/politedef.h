@@ -58,7 +58,7 @@
 typedef unsigned long u_long;
 typedef long long llong;
 typedef unsigned long long u_llong;
-#if /*defined(__cxx11) || */defined(__GNUC__)
+#if defined(__cxx11) || defined(__GNUC__)
 #include <stdint.h>
 #else
 typedef signed __int8 int8_t;
@@ -248,7 +248,7 @@ namespace polite = ::purelib;
 #endif
 
 #if !defined(__WORDSIZE)
-#if defined(_M_X64) || defined(__LP64__) || defined(__x86_64) || defined(_WIN64)
+#if defined(_M_X64) || defined(_WIN64) || defined(__LP64__) || defined(_LP64) || defined(__x86_64) 
 #define __WORDSIZE 64
 #else
 #define __WORDSIZE 32

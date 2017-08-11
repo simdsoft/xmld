@@ -11,6 +11,7 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
+#include "stdafx.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <fcntl.h>
@@ -283,7 +284,7 @@ element element::get_next_sibling(void) const
 
 bool element::has_attribute(const vstring& name) const
 {
-	return is_good() && detail(_Mynode)->first_attribute(name.c_str(), name.size()) != nullptr;
+	return is_good() && detail(_Mynode)->first_attribute(name.empty() ? name.c_str() : nullptr, name.size()) != nullptr;
 }
 
 vstring element::get_name(void) const
@@ -721,17 +722,24 @@ namespace rapidxml {
 
 struct xml4wDoc
 {
-	std::string              filename;
-	std::string              buf;
-	rapidxml::xml_document<> doc;
+    std::string              filename;
+    std::string              originalFileName;
+    std::string              buf;
+    rapidxml::xml_document<> doc;
 };
 
 namespace xmldrv {
-	std::string& internalGetDocPath(const document* doc)
-	{
-		xml4wDoc* impl = (xml4wDoc*)(*super_cast::force_cast<uintptr_t*>(doc));
-		return impl->filename;
-	}
+    std::string& internalGetDocPath(const document* doc)
+    {
+        xml4wDoc* impl = (xml4wDoc*)(*super_cast::force_cast<uintptr_t*>(doc));
+        return impl->filename;
+    }
+
+    std::string& internalGetOriginalDocPath(const document* doc)
+    {
+        xml4wDoc* impl = (xml4wDoc*)(*super_cast::force_cast<uintptr_t*>(doc));
+        return impl->originalFileName;
+    }
 }
 
 bool document::open(const char* name, const char* mode, int namelen)
@@ -763,11 +771,12 @@ bool document::openf(const char* filename)
 			return false;
 
 		try {
-			impl_ = new xml4wDoc();
-			impl_->filename = filename;
-			impl_->buf = std::move(tempData);
-			impl_->doc.parse<rapidxml::parse_normal>((char*)&impl_->buf.front(), (int)impl_->buf.size());
-		}
+            impl_ = new xml4wDoc();
+            impl_->filename = filename;
+            impl_->originalFileName = filename;
+            impl_->buf = std::move(tempData);
+            impl_->doc.parse<rapidxml::parse_normal>((char*)&impl_->buf.front(), (int)impl_->buf.size());
+        }
         catch (rapidxml::parse_error& e)
         {
             if (impl_ != nullptr) {
@@ -793,10 +802,11 @@ bool document::openn(const char* rootname, const char* filename)
 		if (impl_ != nullptr)
 		{
 			impl_->doc.append_node(impl_->doc.allocate_node(rapidxml::node_type::node_element, rootname));
-			impl_->filename = filename;
-		}
-	}
-	return is_open();
+            impl_->filename = filename;
+            impl_->originalFileName = filename;
+        }
+    }
+    return is_open();
 }
 
 bool document::openn()
@@ -832,11 +842,12 @@ bool document::openb(const char* xmlstring, int length)
 		try {
 			impl_ = new xml4wDoc();
 			impl_->buf.resize(length);
-			::memcpy(&impl_->buf.front(), xmlstring, length);
-			impl_->doc.parse<rapidxml::parse_normal>((char*)&impl_->buf.front(), (int)impl_->buf.size());
-			impl_->filename = "xmldrv.memory.xml";
-		}
-		catch (...) {
+            ::memcpy(&impl_->buf.front(), xmlstring, length);
+            impl_->doc.parse<rapidxml::parse_normal>((char*)&impl_->buf.front(), (int)impl_->buf.size());
+            impl_->filename = "xmldrv.memory.xml";
+            impl_->originalFileName = "xmldrv.memory.xml";
+        }
+        catch (...) {
 			if (impl_ != nullptr) {
 				delete impl_;
 				impl_ = nullptr;
@@ -881,15 +892,18 @@ void document::save(const char* filename, bool formatted) const
 #else
 		write_file_data(filename, stream);
 #endif
-		if (this->impl_->filename.empty()) {
-			this->impl_->filename = filename;
-		}
+        if (this->impl_->filename != filename) {
+            this->impl_->filename = filename;
+        }
 	}
 }
 
 element document::root(void) const
 {
-	return (element)impl_->doc.first_node();
+    if (impl_ != nullptr)
+        return (element)impl_->doc.first_node();
+
+    return element(nullptr);
 }
 
 element document::create_element(const char* name, const char* value)
@@ -1187,14 +1201,14 @@ inline bool is_element(xml4wNodePtr ptr)
 
 element element::clone(void) const
 { // pugixml does not implement
-	return element(nullptr);
+	return nullptr;
 }
 
 element element::get_parent(void) const
 {
 	if (is_good())
-		return element(simplify(detail(_Mynode).parent()));
-	return element(nullptr);
+		return simplify(detail(_Mynode).parent());
+	return nullptr;
 }
 
 element element::get_first_child(void) const
@@ -1206,7 +1220,7 @@ element element::get_first_child(void) const
 		is_element(_Mynode),
 		break
 	);
-	return element(nullptr);
+	return ptr;
 }
 
 element element::get_prev_sibling(void) const
@@ -1218,7 +1232,7 @@ element element::get_prev_sibling(void) const
 		is_element(_Mynode),
 		break
 	);
-	return element(nullptr);
+	return ptr;
 }
 
 element element::get_next_sibling(void) const
@@ -1230,18 +1244,18 @@ element element::get_next_sibling(void) const
 		is_element(_Mynode),
 		break
 	);
-	return element(nullptr);
+	return ptr;
 }
 
-vstring element::get_name(void) const
+std::string element::get_name(void) const
 {
 	if (is_good()) {
 		return detail(_Mynode).name();
 	}
-	return "";
+	return "null";
 }
 
-vstring element::get_value(const vstring& default_value) const
+std::string element::get_value(const char* default_value) const
 {
 	if (is_good())
 	{
@@ -1254,13 +1268,13 @@ vstring element::get_value(const vstring& default_value) const
 }
 
 
-std::string element::get_attribute_value(const vstring& name, const vstring& default_value) const
+std::string element::get_attribute_value(const char* name, const char* default_value) const
 {
 	if (is_good())
 	{
 		// real detail(_Mynode) pointer is internal struct pointer
 
-		auto attr = detail(_Mynode).attribute(name.c_str());
+		auto attr = detail(_Mynode).attribute(name);
 		if (!attr.empty())
 		{
 			return attr.value();
@@ -1273,20 +1287,20 @@ std::string element::get_attribute_value(const vstring& name, const vstring& def
 	return default_value;
 }
 
-void element::set_value(const vstring& value)
+void element::set_value(const char* value)
 {
 	if (is_good())
-		detail(_Mynode).set_value(value.c_str());
+		detail(_Mynode).set_value(value);
 }
 
-void element::set_attribute_value(const vstring& name, const vstring& value)
+void element::set_attribute_value(const char* name, const char* value)
 {
 	if (is_good()) {
-		auto attrib = detail(_Mynode).attribute(name.c_str());
+		auto attrib = detail(_Mynode).attribute(name);
 		if (!attrib.empty())
-			attrib.set_value(value.c_str());
+			attrib.set_value(value);
 		else {
-			detail(_Mynode).append_attribute(name.c_str()).set_value(value.c_str());
+			detail(_Mynode).append_attribute(name).set_value(value);
 		}
 	}
 }
@@ -1295,10 +1309,10 @@ void element::remove_children(void)
 {
 }
 
-void element::remove_children(const vstring& name)
+void element::remove_children(const char* name)
 {
 	if (is_good())
-		detail(_Mynode).remove_child(name.c_str());
+		detail(_Mynode).remove_child(name);
 }
 
 void element::remove_self(void)
@@ -1322,14 +1336,14 @@ std::string element::to_string(bool formatted) const
 	return "";
 }
 
-element element::add_child(const vstring& name, const vstring& value) const
+element element::add_child(const char* name, const char* value) const
 {
 	if (is_good()) {
-		auto newe = detail(_Mynode).append_child(name.c_str());
-		newe.set_value(value.c_str());
-		return element(simplify(newe));
+		auto newe = detail(_Mynode).append_child(name);
+		newe.set_value(value);
+		return simplify(newe);
 	}
-	return element(nullptr);
+	return nullptr;
 }
 
 
@@ -1341,23 +1355,7 @@ struct xml4wDoc
 	pugi::xml_document doc;
 };
 
-bool document::open(const char* name, const char* mode, int namelen)
-{
-	if (0 == _stricmp(mode, "#memory")) {
-		return openn(name);
-	}
-	else if (0 == _stricmp(mode, "#buffer")) {
-		return openb(name, namelen);
-	}
-	else if (0 == _stricmp(mode, "#disk") || 0 == _stricmp(mode, "#file"))
-	{
-		return openf(name);
-	}
-	else
-		return false;
-}
-
-bool document::openf(const char* filename)
+bool document::open(const char* filename)
 {
 	if (!is_open()) {
 		this->impl_ = new (std::nothrow) xml4wDoc();
@@ -1376,7 +1374,15 @@ bool document::openf(const char* filename)
 	return is_open();
 }
 
-bool document::openb(const char* xmlstring, int length)
+bool document::open(const char* filename, const char* rootname)
+{
+	if (!is_open()) {
+		// TODO: impl pugi
+	}
+	return is_open();
+}
+
+bool document::open(const char* xmlstring, int length)
 {
 	if (!is_open()) {
 		this->impl_ = new (std::nothrow) xml4wDoc();
@@ -1387,36 +1393,11 @@ bool document::openb(const char* xmlstring, int length)
 	return is_open();
 }
 
-bool document::openb(std::string&& xmlstring)
-{
-	if (!is_open()) {
-		this->impl_ = new (std::nothrow) xml4wDoc();
-		if (this->impl_)
-			if (!this->impl_->doc.load_buffer_inplace(&xmlstring.front(), xmlstring.size()))
-				close();
-	}
-	return is_open();
-}
-
-bool document::openn(const char* filename, const char* rootname)
-{
-	if (!is_open()) {
-		// TODO: impl pugi
-		char buffer[SZ(4, k)] = { 0 };
-		auto length = sprintf(buffer, "<%s />", rootname);
-		this->impl_ = new (std::nothrow) xml4wDoc();
-		if (this->impl_)
-			if (!this->impl_->doc.load_buffer(buffer, length))
-				close();
-	}
-	return is_open();
-}
-
-element document::root(void) const
+element document::root(void)
 {
 	if (is_open())
-		return element(simplify(impl_->doc.root().first_child()));
-	return element(nullptr);
+		return simplify(impl_->doc.root().first_child());
+	return nullptr;
 }
 
 void document::save(bool formatted) const
@@ -1830,27 +1811,27 @@ inline bool is_element(xercesc::DOMNode* ptr)
 
 std::string _xml4w_transcode(const XMLCh* source)
 {
-	char* value = XMLString::transcode(source);
+    char* value = XMLString::transcode(source);
 
-	if (value != nullptr)
-	{
-		std::string sRet(value);
-		XMLString::release(&value);
-		return std::move(sRet);
-	}
-	return "";
+    if (value != nullptr)
+    {
+        std::string sRet(value);
+        XMLString::release(&value);
+        return sRet;
+    }
+    return "";
 }
 
 std::basic_string<XMLCh> _xml4w_transcode(const char* source)
 {
-	XMLCh* value = XMLString::transcode(source);
-	if (value != nullptr)
-	{
-		std::basic_string<XMLCh> sRet(value);
-		XMLString::release(&value);
-		return std::move(sRet);
-	}
-	return std::basic_string<XMLCh>();
+    XMLCh* value = XMLString::transcode(source);
+    if (value != nullptr)
+    {
+        std::basic_string<XMLCh> sRet(value);
+        XMLString::release(&value);
+        return sRet;
+    }
+    return std::basic_string<XMLCh>();
 }
 
 void _xml4w_serialize(xercesc::DOMNode* _TheNode, XMLFormatTarget& _Target, bool _Formated = true)

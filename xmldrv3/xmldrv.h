@@ -63,7 +63,7 @@
 #endif
 
 #undef _XMLDRV_STATIC
-#define _XMLDRV_STATIC 1
+#define _XMLDRV_STATIC 0
 
 #undef _USE_IN_COCOS2DX
 #define _USE_IN_COCOS2DX 0
@@ -71,7 +71,7 @@
 #if defined(_XMLDRV_STATIC) && _XMLDRV_STATIC
 #define XMLDRV_DLL
 #else
-#if defined(_USRDLL)
+#if defined(_USRDLL) || defined(_AFXDLL) || defined(_WINDLL)
 #define XMLDRV_DLL     __declspec(dllexport)
 #else         /* use a DLL library */
 #define XMLDRV_DLL     __declspec(dllimport)
@@ -86,7 +86,6 @@
 #undef _USING_PUGIXML
 #undef _USING_VTDXML
 #define _USING_RAPIDXML 1
-// #define _USING_PUGIXML 1
 
 #if _USE_IN_COCOS2DX
 #include <cocos2d.h>
@@ -117,7 +116,7 @@ vstring make_vstring(const char(&_Ptr)[_Size])
 {
     vstring temp(_Ptr, _Size - 1);
     temp.set_reliable(true);
-    return std::move(temp);
+    return temp;
 }
 
 #define _mkvs make_vstring
@@ -178,7 +177,7 @@ namespace xmldrv {
 
         vstring         get_attribute_value(const vstring& name, const vstring&) const;
 
-        bool            has_attribute(const vstring& name) const;
+        bool            has_attribute(const vstring& name = "") const;
 
         element         get_parent(void) const;
         element         get_prev_sibling(void) const;
@@ -329,7 +328,7 @@ namespace xmldrv {
 
         /* std::move support */
         document(document&& right) { impl_ = right.impl_; right.impl_ = nullptr; }
-        document& operator=(document&& right) { impl_ = right.impl_; right.impl_ = nullptr; return *this; }
+        document& operator=(document&& right) { close(); impl_ = right.impl_; right.impl_ = nullptr; return *this; }
 
         ~document(void);
 
