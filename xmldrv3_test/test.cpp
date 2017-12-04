@@ -1,7 +1,7 @@
 #include "../xmldrv3/xmldrv.h"
-#include "../xmldrv3/vtd-xml/everything.h"
+//#include "../xmldrv3/vtd-xml/everything.h"
 #include "../xmldrv3/rapidxml/rapidxml_sax3.hpp"
-#include "tinyxml2.h"
+//#include "tinyxml2.h"
 #include "pugixml.hpp"
 #include <iostream>
 #include <fstream>
@@ -233,13 +233,71 @@ public:
 	};
 };
 
+class A {
+public:
+    A() : _localZOrderI64(0) {}
+    void setLocalZOrder(int zOrder)
+    {
+        _localZOrder = zOrder;
+    }
+
+    union {
+        __int64 _localZOrderI64;
+        struct {
+            unsigned int _orderOfArrival;
+            int _localZOrder;
+        };
+    };
+};
+
 void main()
 {
+    auto xmlContent = read_file_data(R"(D:\develop\x-studio365\Debug\settings\editor-res\skins\activation_dlg.xml)");
+    xmld::document d;
+    d.openb(std::move(xmlContent));
+
+    std::string instFileList;
+    std::string uninstList;
+
+    std::string prefix = R"(  File "..\..\issues\x-studio\settings\editor-res\skins\)";
+    std::string suffix = "\"";
+
+    std::string uinstPrefix = R"(  Delete "$INSTDIR\settings\editor-res\skins\)";
+    
+    d.visit([&](const xmld::element& elem) {
+        for (auto attrib = elem.first_attribute(); attrib.is_good(); ++attrib)
+        {
+            if (strstr(attrib.get_value().c_str(), ".png") != nullptr)
+            {
+                std::string value = attrib.get_value();
+                auto pos = value.find("file='");
+                if (pos != std::string::npos) {
+                    auto end = value.find_first_of('\'', pos + 6);
+                    value = value.substr(pos + 6, end - pos - 6);
+                }
+
+                std::string instLine = prefix + value + suffix;
+
+                instFileList.append(std::move(instLine));
+                instFileList.push_back('\n');
+
+                std::string uninstLine = uinstPrefix + value + suffix;
+                uninstList.append(std::move(uninstLine));
+                uninstList.push_back('\n');
+            }
+        }
+    });
+
+    ::write_file_data("install-list2.txt", instFileList);
+    ::write_file_data("uninstall-list2.txt", uninstList);
+
+#if 0
 	xmld::document d1;
 	d1.openf("crash1.xml");
 	d1.root()["ip"].cforeach([](const xmld::element& item) {
 		printf("name:%s, value:%s\n", item.get_name().c_str(), item.get_value("").c_str());
 	});
+#endif
 #if 0
     xmldrv::document doc("test.xml", "#memory"); // mode: "#disk", "#buffer", "#memory";
 
@@ -266,6 +324,8 @@ void main()
 
     doc.close();
 #endif
+
+#if 0
 	for (int i = 0; i < 5; ++i) {
 
 		xmld::document d;
@@ -345,6 +405,8 @@ void main()
 
 		printf("vtd-xml: %lf seconds used!\n", (clock() - start) / (double)CLOCKS_PER_SEC);
 	}
+
+#endif
 
     system("pause");
 }

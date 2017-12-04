@@ -59,11 +59,11 @@
 
 /// version
 #ifndef _XML4WRAPPER_VERSION
-#define _XML4WRAPPER_VERSION "3.10"
+#define _XML4WRAPPER_VERSION "3.13"
 #endif
 
 #undef _XMLDRV_STATIC
-#define _XMLDRV_STATIC 0
+#define _XMLDRV_STATIC 1
 
 #undef _USE_IN_COCOS2DX
 #define _USE_IN_COCOS2DX 0
@@ -71,7 +71,7 @@
 #if defined(_XMLDRV_STATIC) && _XMLDRV_STATIC
 #define XMLDRV_DLL
 #else
-#if defined(_USRDLL) || defined(_AFXDLL) || defined(_WINDLL)
+#if defined(_USRDLL)
 #define XMLDRV_DLL     __declspec(dllexport)
 #else         /* use a DLL library */
 #define XMLDRV_DLL     __declspec(dllimport)
@@ -132,6 +132,9 @@ typedef xml4wDoc* xml4wDocPtr;
 
 typedef void* xml4wXPathResultPtr;
 
+typedef struct xml4wAttrib xml4wAttrib;
+typedef xml4wAttrib* xml4wAttribPtr;
+
 /// traversal macro defination
 #define __xml4wts_algo(ptr, first, second, stmt) \
         if(ptr != nullptr) { \
@@ -157,9 +160,30 @@ using namespace purelib;
 // using namespace purelib::gc;
 
 namespace xmldrv {
-
-    class element;
     class document;
+    class element;
+    class attribute;
+    class attribute
+    {
+    public:
+        attribute() : _Ptr(nullptr) {}
+        attribute(xml4wAttribPtr ptr) : _Ptr(ptr) {}
+        ~attribute() {}
+
+        void set_value(const vstring&);
+        vstring get_value() const;
+        vstring get_name() const;
+
+        attribute next();
+
+        attribute& operator++();
+
+        bool is_good() const;
+
+    private:
+        xml4wAttribPtr _Ptr;
+    };
+
 
     class XMLDRV_DLL element
     {
@@ -169,6 +193,12 @@ namespace xmldrv {
         explicit element(xml4wNodePtr _Ptr = nullptr);
         ~element(void);
 
+        element(const element& rhs);
+        element& operator=(const element& rhs);
+
+        element(element&& rhs);
+        element& operator=(element&& rhs);
+
         element         clone(void) const;
 
         vstring         get_name(void) const;
@@ -177,7 +207,7 @@ namespace xmldrv {
 
         vstring         get_attribute_value(const vstring& name, const vstring&) const;
 
-        bool            has_attribute(const vstring& name = "") const;
+        bool            has_attribute(const vstring& name) const;
 
         element         get_parent(void) const;
         element         get_prev_sibling(void) const;
@@ -263,6 +293,9 @@ namespace xmldrv {
         void            set_attribute_value(const vstring& name, const float& value);
         void            set_attribute_value(const vstring& name, const double& value);
 
+        void            remove_attribute(const vstring& name);
+        void            remove_all_attributes();
+
         template<typename _Handler>
         void            cforeach(const _Handler&) const;
 
@@ -281,15 +314,22 @@ namespace xmldrv {
         template<typename _Handler> // foreach attribute, op protype: (const unmanaged_string& name, const unmanaged_string& value)
         void            pforeach_breakif(const _Handler&) const;
 
-        void*           first_attribute() const;
-
-        static void*     next_attribute(void* attr);
-        static vstring   name_of_attr(void* attr);
-        static vstring   value_of_attr(void* attr);
+        attribute       first_attribute() const;
 
         bool            is_good(void) const { return _Mynode != nullptr; }
         operator xml4wNodePtr(void) { return _Mynode; }
         operator xml4wNodePtr(void) const { return _Mynode; }
+
+        template<typename _Fty> inline
+            void visit(const _Fty& _Func) const
+        {
+            _Func(*this);
+            if (this->get_first_child().is_good()) {
+                this->cforeach([&](const xmld::element& child) {
+                    child.visit(_Func);
+                });
+            }
+        }
 
 #if _USE_IN_COCOS2DX
         void set_attribute_value(const vstring& name, const cocos2d::Color3B& value);
@@ -441,6 +481,13 @@ namespace xmldrv {
         std::string         to_string(bool formatted = false) const;
 
         element             create_element(const char* name, const char* value = "");
+
+        template<typename _Fty> inline
+            void visit(const _Fty& _Func) const
+        {
+            if (is_open())
+                root().visit(_Func);
+        }
 
     private:
         xml4wXPathResultPtr xpath_eval(const char* xpath) const;

@@ -93,21 +93,21 @@ void element::cforeach_breakif(const vstring& name, const _Handler& handler) con
 template<typename _Handler> inline
 void   element::pforeach(const _Handler& handler) const
 {
-    auto ptr = first_attribute();
-    while (ptr != nullptr) {
-        handler(name_of_attr(ptr), value_of_attr(ptr));
-        ptr = next_attribute(ptr);
+    auto attrib = first_attribute();
+    while (attrib.is_good()) {
+        handler(attrib.get_name(), attrib.get_value());
+        attrib = attrib.next();
     }
 }
 
 template<typename _Handler> inline
 void   element::pforeach_breakif(const _Handler& handler) const
 {
-    auto ptr = first_attribute();
-    while (ptr != nullptr) {
-        if (handler(name_of_attr(ptr), value_of_attr(ptr)))
+    auto attrib = first_attribute();
+    while (attrib != nullptr) {
+        if (handler(attrib.get_name(), attrib.get_value()))
             break;
-        ptr = next_attribute(ptr);
+        attrib = attrib.next();
     }
 }
 

@@ -157,14 +157,14 @@ size_t strtrim(_Elem* _Str)
 
     _Elem* _Ptr = _Str - 1;
 
-    while( !_Is_visible_char(*(++_Ptr)) && *_Ptr ) ;
+    while(::iswspace(*(++_Ptr)) && *_Ptr ) ;
 
     _Elem* _First = _Ptr;
     _Elem* _Last = _Ptr;
     if(*_Ptr) {
         while(*(++_Ptr))
         {
-            if(_Is_visible_char(*_Ptr)) {
+            if(::iswspace(*_Ptr)) {
                 _Last = _Ptr;
             }
         }
@@ -772,13 +772,12 @@ inline std::string transcode(const wchar_t* wcb, UINT cp = code_page_acp)
     return buffer;
 }
 
-template<typename _Allocator>
-inline std::basic_string<char, std::char_traits<char>, _Allocator> transcode(const std::basic_string<wchar_t, std::char_traits<wchar_t>, _Allocator>& wcb, UINT cp = code_page_acp)
+inline std::string transcode(const std::wstring& wcb, UINT cp = code_page_acp)
 {
     if (wcb.empty())
         return "";
     int buffersize = WideCharToMultiByte(cp, 0, wcb.c_str(), -1, NULL, 0, NULL, NULL);
-    std::basic_string<char, std::char_traits<char>, _Allocator> buffer(buffersize - 1, '\0');
+    std::string buffer(buffersize - 1, '\0');
     WideCharToMultiByte(cp, 0, wcb.c_str(), -1, &buffer.front(), buffersize, NULL, NULL);
     return buffer;
 }
@@ -794,13 +793,12 @@ inline std::wstring transcode(const char* mcb, UINT cp = code_page_acp)
     return buffer;
 }
 
-template<typename _Allocator>
-inline std::basic_string<wchar_t, std::char_traits<wchar_t>, _Allocator> transcode(const std::basic_string<char, std::char_traits<char>, _Allocator>& mcb, UINT cp = code_page_acp)
+inline std::wstring transcode(const std::string& mcb, UINT cp = code_page_acp)
 {
     if (mcb.empty())
         return L"";
     int buffersize = MultiByteToWideChar(cp, 0, mcb.c_str(), -1, NULL, 0);
-    std::basic_string<wchar_t, std::char_traits<wchar_t>, _Allocator> buffer(buffersize - 1, '\0');
+    std::wstring buffer(buffersize - 1, '\0');
     MultiByteToWideChar(cp, 0, mcb.c_str(), -1, &buffer.front(), buffersize);
     return buffer;
 }
@@ -860,7 +858,7 @@ inline void create_guid(LPTSTR outs)
     _GUID guid;
     CoCreateGuid(&guid);
 
-    wprintf_s(outs, TEXT("%08X-%04X-%04X-%04X-%04X%08X"),
+    wsprintf(outs, TEXT("%08X-%04X-%04X-%04X-%04X%08X"),
         guid.Data1,
         guid.Data2,
         guid.Data3,
@@ -875,7 +873,7 @@ inline void create_guid_v2(LPTSTR outs)
     _GUID guid;
     CoCreateGuid(&guid);
 
-    wprintf_s(outs, TEXT("%08X%04X%04X%016I64X"), 
+    wsprintf(outs, TEXT("%08X%04X%04X%016I64X"),
         guid.Data1,
         guid.Data2,
         guid.Data3,

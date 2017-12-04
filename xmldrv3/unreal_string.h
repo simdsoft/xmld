@@ -254,14 +254,7 @@ namespace purelib {
             this->assign(_First, _Last);
         }
 
-        template<size_t _Size>
-        unreal_string(_Elem(&_Ptr)[_Size])
-        {
-            this->assign(_Ptr, _Size - 1);
-            this->_Reliable = 1;
-        }
-
-        explicit unreal_string(_Elem* _Ptr)
+        unreal_string(_Elem* _Ptr)
         {
             this->assign(_Ptr);
         }
@@ -280,11 +273,6 @@ namespace purelib {
         {
             this->assign(_Right);
         }
-
-		unreal_string(std::basic_string<_Elem>& _Right)
-		{
-			this->assign(_Right);
-		}
 
 #if defined(_AFX) || defined(__CSTRINGT_H__)
 
@@ -345,12 +333,12 @@ namespace purelib {
             this->_Bx._Const_Ptr = nullptr;
         }
 
-        bool is_reliable() const
+        bool reliable() const
         {
             return this->_Reliable;
         }
 
-        _Myt& set_reliable(bool reliable)
+        _Myt& reliable(bool reliable)
         {
             this->_Reliable = reliable;
             return *this;
@@ -457,17 +445,6 @@ namespace purelib {
             this->_Mysize = _Right.size();
             return *this;
         }
-
-		_Myt& assign(std::basic_string<_Elem>& _Right)
-		{
-			_Tidy();
-
-			static_assert(!_Cleaner::value, "atl-string can't assign to a managed unreal_string");
-
-			this->_Bx._Const_Ptr = _Right.c_str();
-			this->_Mysize = _Right.size();
-			return *this;
-		}
 
         _Myt& assign(const std::vector<_Elem>& _Right)
         {
@@ -583,11 +560,11 @@ namespace purelib {
             return (this->assign(_Ptr));
         }
 
-        template<size_t _Size>
+        /*template<size_t _Size>
         _Myt& operator=(const _Elem(&_Ptr)[_Size])
         {
             return (this->assign(_Ptr, _Size - 1));
-        }
+        }*/
 
         _Myt& operator=(const std::basic_string<_Elem>& _Right)
         {	// assign [_Ptr, <null>)
@@ -677,11 +654,6 @@ namespace purelib {
         {	// return pointer to nonmutable array
             return this->c_str();
         }
-
-		_Elem* data(void)
-		{
-			return const_cast<_Elem*>(this->c_str());
-		}
 
         const _Elem*& ldata(void)
         { // return internal pointer which can be change by exnternal, use careful
