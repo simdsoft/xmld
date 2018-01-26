@@ -1,8 +1,9 @@
 #ifndef RAPIDXML_HPP_INCLUDED
 #define RAPIDXML_HPP_INCLUDED
 
+// Copyright (C) 2016, 2018 HALX99
 // Copyright (C) 2006, 2009 Marcin Kalicinski
-// ------------> 2016 halx99
+
 // Version 1.13
 // Revision $DateTime: 2009/05/13 01:46:17 $
 //! \file rapidxml.hpp This file contains rapidxml parser and DOM implementation
@@ -13,8 +14,6 @@
 #include <cassert>      // For assert
 #include <new>          // For placement new
 #endif
-
-#include "object_pool.h"
 
 // On MSVC, disable "conditional expression is constant" warning (level 4). 
 // This warning is almost impossible to avoid with certain types of templated code
@@ -419,7 +418,7 @@ namespace rapidxml
             const Ch *name = 0, const Ch *value = 0,
             std::size_t name_size = 0, std::size_t value_size = 0)
         {
-            void *memory = nodes_pool.get(); // allocate_aligned(sizeof(xml_node<Ch>));
+            void *memory = allocate_aligned(sizeof(xml_node<Ch>));
             xml_node<Ch> *node = new(memory) xml_node<Ch>(type);
             if (name)
             {
@@ -452,7 +451,7 @@ namespace rapidxml
         xml_attribute<Ch> *allocate_attribute(const Ch *name = 0, const Ch *value = 0,
             std::size_t name_size = 0, std::size_t value_size = 0)
         {
-            void *memory = attributes_pool.get();// allocate_aligned(sizeof(xml_attribute<Ch>));
+            void *memory = allocate_aligned(sizeof(xml_attribute<Ch>));
             xml_attribute<Ch> *attribute = new(memory) xml_attribute<Ch>;
             if (name)
             {
@@ -486,8 +485,6 @@ namespace rapidxml
             Ch *result = static_cast<Ch *>(allocate_aligned(size * sizeof(Ch)));
             if (source)
                 memcpy(result, source, size * sizeof(Ch));
-            /*for (std::size_t i = 0; i < size; ++i)
-                result[i] = source[i];*/
             return result;
         }
 
@@ -539,8 +536,6 @@ namespace rapidxml
                     delete[] m_begin;
                 m_begin = previous_begin;
             }
-            attributes_pool.cleanup();
-            nodes_pool.cleanup();
             init();
         }
 
@@ -644,9 +639,6 @@ namespace rapidxml
         char m_static_memory[RAPIDXML_STATIC_POOL_SIZE];    // Static raw memory
         alloc_func *m_alloc_func;                           // Allocator function, or 0 if default is to be used
         free_func *m_free_func;                             // Free function, or 0 if default is to be used
-
-        purelib::gc::object_pool<xml_attribute<Ch>, 512> attributes_pool;
-        purelib::gc::object_pool<xml_node<Ch>, 512> nodes_pool;
     };
 
     ///////////////////////////////////////////////////////////////////////////
