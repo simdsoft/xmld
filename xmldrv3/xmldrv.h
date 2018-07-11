@@ -11,7 +11,7 @@
 *     or _USING_RAPIDXML                                                      *
 *                                                                             *
 *     Version history:                                                        *
-*       3.10: use vstring                                                     *
+*       3.10: use string                                                     *
 *       3.9.3: add operator[](const char* name) interface.                    *
 *       3.9.2: change module name 'xml4wrapper' --> 'xmldrv'                  *
 *              remove 3rd header dependency.                                  *
@@ -59,7 +59,7 @@
 
 /// version
 #ifndef _XML4WRAPPER_VERSION
-#define _XML4WRAPPER_VERSION "3.13"
+#define _XML4WRAPPER_VERSION "3.20"
 #endif
 
 #undef _XMLDRV_STATIC
@@ -105,24 +105,6 @@
 #include "nsconv.h"
 #include "unreal_string.h"
 
-#if defined(_USING_RAPIDXML)
-typedef purelib::unmanaged_string vstring;
-#else
-typedef std::string vstring;
-#endif
-
-template<size_t _Size> inline
-vstring make_vstring(const char(&_Ptr)[_Size])
-{
-    vstring temp(_Ptr, _Size - 1);
-    temp.set_reliable(true);
-    return temp;
-}
-
-#define _mkvs make_vstring
-
-extern vstring vstring_empty;
-
 /// basic types
 typedef void xml4wNode;
 typedef xml4wNode* xml4wNodePtr;
@@ -160,6 +142,14 @@ using namespace purelib;
 // using namespace purelib::gc;
 
 namespace xmldrv {
+#if defined(_USING_RAPIDXML)
+    typedef purelib::unmanaged_string string;
+#else
+    typedef std::string string;
+#endif
+
+    extern string empty_string;
+
     class document;
     class element;
     class attribute;
@@ -170,12 +160,12 @@ namespace xmldrv {
         attribute(xml4wAttribPtr ptr) : _Ptr(ptr) {}
         ~attribute() {}
 
-        void set_value(const vstring&);
-        vstring get_value() const;
-        vstring get_name() const;
+        void set_value(const string&);
+        string get_value() const;
+        string get_name() const;
+        void set_name(const string& name);
 
         attribute next();
-
         attribute& operator++();
 
         bool is_good() const;
@@ -201,13 +191,15 @@ namespace xmldrv {
 
         element         clone(void) const;
 
-        vstring         get_name(void) const;
+        string          get_name(void) const;
 
-        vstring         get_value(const vstring& default_value) const;
+        void            set_name(const string& name);
 
-        vstring         get_attribute_value(const vstring& name, const vstring&) const;
+        string          get_value(const string& default_value) const;
 
-        bool            has_attribute(const vstring& name) const;
+        string          get_attribute_value(const string& name, const string&) const;
+
+        bool            has_attribute(const string& name) const;
 
         element         get_parent(void) const;
         element         get_prev_sibling(void) const;
@@ -215,20 +207,20 @@ namespace xmldrv {
         element         get_first_child(void) const;
 
         element         operator[](int index) const;
-        element         operator[](const vstring& name) const;
+        element         operator[](const string& name) const;
         element         get_child(int index = 0) const;
-        element         get_child(const vstring& name, int index = 0) const;
+        element         get_child(const string& name, int index = 0) const;
 
-        void            set_value(const vstring& value);
-        void            set_attribute_value(const vstring& name, const vstring& value);
+        void            set_value(const string& value);
+        void            set_attribute_value(const string& name, const string& value);
 
-        element         add_child(const element& element) const;
-        element         add_child(const vstring& name, const vstring& value = "") const;
+        element         add_child(const element& element, bool force_clone = false) const;
+        element         add_child(const string& name, const string& value = "") const;
 
         void            remove_child(int index = 0);
-        void            remove_child(const vstring& name, int index = 0);
+        void            remove_child(const string& name, int index = 0);
         void            remove_children(void);
-        void            remove_children(const vstring& name);
+        void            remove_children(const string& name);
         void            remove_self(void);
 
         std::string     to_string(bool formatted = false) const;
@@ -250,20 +242,20 @@ namespace xmldrv {
         double          get_value(double value = 0) const;
 
         /// get_attribute_value APIs
-        // bool            get_attribute_value(const vstring& name, bool value = false, int radix = 10) const;
+        // bool            get_attribute_value(const string& name, bool value = false, int radix = 10) const;
 
-        int8_t          get_attribute_value(const vstring& name, int8_t value = 0, int radix = 10) const;
-        int16_t         get_attribute_value(const vstring& name, int16_t value = 0, int radix = 10) const;
-        int32_t         get_attribute_value(const vstring& name, int32_t value = 0, int radix = 10) const;
-        int64_t         get_attribute_value(const vstring& name, int64_t value = 0, int radix = 10) const;
+        int8_t          get_attribute_value(const string& name, int8_t value = 0, int radix = 10) const;
+        int16_t         get_attribute_value(const string& name, int16_t value = 0, int radix = 10) const;
+        int32_t         get_attribute_value(const string& name, int32_t value = 0, int radix = 10) const;
+        int64_t         get_attribute_value(const string& name, int64_t value = 0, int radix = 10) const;
 
-        uint8_t         get_attribute_value(const vstring& name, uint8_t value = 0, int radix = 10) const;
-        uint16_t        get_attribute_value(const vstring& name, uint16_t value = 0, int radix = 10) const;
-        uint32_t        get_attribute_value(const vstring& name, uint32_t value = 0, int radix = 10) const;
-        uint64_t        get_attribute_value(const vstring& name, uint64_t value = 0, int radix = 10) const;
+        uint8_t         get_attribute_value(const string& name, uint8_t value = 0, int radix = 10) const;
+        uint16_t        get_attribute_value(const string& name, uint16_t value = 0, int radix = 10) const;
+        uint32_t        get_attribute_value(const string& name, uint32_t value = 0, int radix = 10) const;
+        uint64_t        get_attribute_value(const string& name, uint64_t value = 0, int radix = 10) const;
 
-        float           get_attribute_value(const vstring& name, float value = 0) const;
-        double          get_attribute_value(const vstring& name, double value = 0) const;
+        float           get_attribute_value(const string& name, float value = 0) const;
+        double          get_attribute_value(const string& name, double value = 0) const;
 
         /// set_value APIs
         void            set_value(const char& value);
@@ -280,20 +272,20 @@ namespace xmldrv {
         void            set_value(const double& value);
 
         /// set_attribute_value APIs
-        void            set_attribute_value(const vstring& name, const char& value);
-        void            set_attribute_value(const vstring& name, const short& value);
-        void            set_attribute_value(const vstring& name, const int& value);
-        void            set_attribute_value(const vstring& name, const long long& value);
+        void            set_attribute_value(const string& name, const char& value);
+        void            set_attribute_value(const string& name, const short& value);
+        void            set_attribute_value(const string& name, const int& value);
+        void            set_attribute_value(const string& name, const long long& value);
 
-        void            set_attribute_value(const vstring& name, const unsigned char& value);
-        void            set_attribute_value(const vstring& name, const unsigned short& value);
-        void            set_attribute_value(const vstring& name, const unsigned int& value);
-        void            set_attribute_value(const vstring& name, const unsigned long long& value);
+        void            set_attribute_value(const string& name, const unsigned char& value);
+        void            set_attribute_value(const string& name, const unsigned short& value);
+        void            set_attribute_value(const string& name, const unsigned int& value);
+        void            set_attribute_value(const string& name, const unsigned long long& value);
 
-        void            set_attribute_value(const vstring& name, const float& value);
-        void            set_attribute_value(const vstring& name, const double& value);
+        void            set_attribute_value(const string& name, const float& value);
+        void            set_attribute_value(const string& name, const double& value);
 
-        void            remove_attribute(const vstring& name);
+        void            remove_attribute(const string& name);
         void            remove_all_attributes();
 
         template<typename _Handler>
@@ -303,10 +295,10 @@ namespace xmldrv {
         void            cforeach_breakif(const _Handler&) const;
 
         template<typename _Handler>
-        void            cforeach(const vstring& name, const _Handler&) const;
+        void            cforeach(const string& name, const _Handler&) const;
 
         template<typename _Handler> // op must return bool
-        void            cforeach_breakif(const vstring& name, const _Handler&) const;
+        void            cforeach_breakif(const string& name, const _Handler&) const;
 
         template<typename _Handler> // foreach attribute, op protype: (const unmanaged_string& name, const unmanaged_string& value)
         void            pforeach(const _Handler&) const;
@@ -320,8 +312,10 @@ namespace xmldrv {
         operator xml4wNodePtr(void) { return _Mynode; }
         operator xml4wNodePtr(void) const { return _Mynode; }
 
+        xml4wNodePtr internal_object() const { return _Mynode; }
+
         template<typename _Fty> inline
-            void visit(const _Fty& _Func) const
+        void visit(const _Fty& _Func) const
         {
             _Func(*this);
             if (this->get_first_child().is_good()) {
@@ -332,20 +326,20 @@ namespace xmldrv {
         }
 
 #if _USE_IN_COCOS2DX
-        void set_attribute_value(const vstring& name, const cocos2d::Color3B& value);
-        void set_attribute_value(const vstring& name, const cocos2d::Color4B& value);
-        void set_attribute_value(const vstring& name, const cocos2d::Color4F& value);
-        void set_attribute_value(const vstring& name, const cocos2d::Rect& value);
-        void set_attribute_value(const vstring& name, const cocos2d::Vec2& value);
-        void set_attribute_value(const vstring& name, const cocos2d::Vec3& value);
-        void set_attribute_value(const vstring& name, const cocos2d::Size& value);
+        void set_attribute_value(const string& name, const cocos2d::Color3B& value);
+        void set_attribute_value(const string& name, const cocos2d::Color4B& value);
+        void set_attribute_value(const string& name, const cocos2d::Color4F& value);
+        void set_attribute_value(const string& name, const cocos2d::Rect& value);
+        void set_attribute_value(const string& name, const cocos2d::Vec2& value);
+        void set_attribute_value(const string& name, const cocos2d::Vec3& value);
+        void set_attribute_value(const string& name, const cocos2d::Size& value);
 
-        cocos2d::Color3B get_attribute_value(const vstring& name, const cocos2d::Color3B& default_value = cocos2d::Color3B::WHITE) const;
-        cocos2d::Color4B get_attribute_value(const vstring& name, const cocos2d::Color4B& default_value = cocos2d::Color4B::WHITE) const;
-        cocos2d::Color4F get_attribute_value(const vstring& name, const cocos2d::Color4F& default_value = cocos2d::Color4F::WHITE) const;
-        cocos2d::Rect    get_attribute_value(const vstring& name, const cocos2d::Rect& default_value = cocos2d::Rect::ZERO) const;
-        cocos2d::Vec2    get_attribute_value(const vstring& name, const cocos2d::Vec2& default_value = cocos2d::Vec2::ZERO) const;
-        cocos2d::Size    get_attribute_value(const vstring& name, const cocos2d::Size& default_value = cocos2d::Size::ZERO) const;
+        cocos2d::Color3B get_attribute_value(const string& name, const cocos2d::Color3B& default_value = cocos2d::Color3B::WHITE) const;
+        cocos2d::Color4B get_attribute_value(const string& name, const cocos2d::Color4B& default_value = cocos2d::Color4B::WHITE) const;
+        cocos2d::Color4F get_attribute_value(const string& name, const cocos2d::Color4F& default_value = cocos2d::Color4F::WHITE) const;
+        cocos2d::Rect    get_attribute_value(const string& name, const cocos2d::Rect& default_value = cocos2d::Rect::ZERO) const;
+        cocos2d::Vec2    get_attribute_value(const string& name, const cocos2d::Vec2& default_value = cocos2d::Vec2::ZERO) const;
+        cocos2d::Size    get_attribute_value(const string& name, const cocos2d::Size& default_value = cocos2d::Size::ZERO) const;
 #endif
 
     private:
@@ -382,6 +376,17 @@ namespace xmldrv {
         */
         bool                openf(const char* filename);
 
+        std::string&        getbuf();
+
+        bool                setbuf(const char* buf, int length);
+        bool                setbuf(std::string&& xmlstring);
+        bool                readfile(const char* filename);
+
+        bool                parse_default();
+        bool                parse_with_pi();
+        bool                parse_with_comment();
+        bool                parse_full();
+        
 
         /* @brief  : Create a new XML document, if the document already exist, the old file will be overwritten.
         ** @params :
@@ -392,7 +397,23 @@ namespace xmldrv {
         */
         bool                openn(const char* rootname, const char* filename = "");
         bool                openn(); // open a empty
-        element             set_root(element root);
+
+        
+        /* @brief: Get the root element of the document.
+        ** @params : None
+        **
+        ** @returns: the root element of the document
+        */
+        element             document_element(void) const;
+
+        /* @brief: Sets the root element of the document.
+        ** @params : root
+        **
+        ** @returns: Sets root element of the document
+        */
+        element             document_element(element root);
+
+        element             document_declaration() const;
 
 
         /* @brief  : Open from xml formated string
@@ -441,13 +462,6 @@ namespace xmldrv {
         bool                is_open(void) const;
 
 
-        /* @brief: Get the root element of the document.
-        ** @params : None
-        **
-        ** @returns: the root element of the document
-        */
-        element             root(void) const;
-
 
         /* @brief: Get element by XPATH
         ** @params :
@@ -482,11 +496,13 @@ namespace xmldrv {
 
         element             create_element(const char* name, const char* value = "");
 
+        xml4wDocPtr         internal_object() { return impl_; }
+
         template<typename _Fty> inline
-            void visit(const _Fty& _Func) const
+        void visit(const _Fty& _Func) const
         {
             if (is_open())
-                root().visit(_Func);
+                document_element().visit(_Func);
         }
 
     private:

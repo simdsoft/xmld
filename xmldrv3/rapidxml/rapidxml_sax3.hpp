@@ -1,8 +1,9 @@
 #ifndef RAPIDXML_SAX3_HPP_INCLUDED
 #define RAPIDXML_SAX3_HPP_INCLUDED
 
+// Copyright (C) 2016, 2018 HALX99
 // Copyright (C) 2006, 2009 Marcin Kalicinski
-// ------------> 2016 halx99
+
 // Version 1.13
 // Revision $DateTime: 2009/05/13 01:46:17 $
 //! \file rapidxml_sax3.hpp This file contains rapidxml SAX parser implementation
@@ -132,6 +133,7 @@ namespace rapidxml
         {
             ok,
             expected_close_tag,
+            unrecognized_tag,
         };
         parse_result parse_result_ = parse_result::ok;
     public:
@@ -192,13 +194,13 @@ namespace rapidxml
             // check parse result.
             if (parse_result_ == parse_result::ok) {
                 if (endch == '<') {
+                    parse_result_ = parse_result::unrecognized_tag;
                     RAPIDXML_PARSE_ERROR("unrecognized tag", text);
                 }
             }
-            else { // parse_result_ == parse_result::expected_close_tag
-                if (endch != '>') {
-                    RAPIDXML_PARSE_ERROR("expected >", text);
-                }
+            else { // parse_result_: parse_result::expected_close_tag
+                if (endch == '>')  parse_result_ = parse_result::ok;
+                else RAPIDXML_PARSE_ERROR("expected >", text);
             }
         }
 

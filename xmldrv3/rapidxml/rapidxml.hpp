@@ -434,8 +434,8 @@ namespace rapidxml
                 else
                     node->value(value);
             }
-            // halx99: store allocator pointer for edit element attributes & children standalone.
-            node->set_allocator(this);
+            // halx99: store pool allocator pointer for edit element attributes & children standalone.
+            node->set_pool(this);
             return node;
         }
 
@@ -509,15 +509,21 @@ namespace rapidxml
             else
                 result = allocate_node(source->type());
 
-            // Clone name and value
-            result->name(source->name(), source->name_size());
-            result->value(source->value(), source->value_size());
+            // Clone name and value, fix at 2018.5.1 0:53 by halx99, clone always copy memory
+            // Fix github issue: https://github.com/halx99/x-studio365/issues/318
+            result->name(allocate_string(source->name(), source->name_size()), source->name_size());
+            result->value(allocate_string(source->value(), source->value_size()), source->value_size());
 
             // Clone child nodes and attributes
             for (xml_node<Ch> *child = source->first_node(); child; child = child->next_sibling())
                 result->append_node(clone_node(child));
             for (xml_attribute<Ch> *attr = source->first_attribute(); attr; attr = attr->next_attribute())
-                result->append_attribute(allocate_attribute(attr->name(), attr->value(), attr->name_size(), attr->value_size()));
+                result->append_attribute(allocate_attribute(
+                    allocate_string(attr->name(), attr->name_size()), 
+                    allocate_string(attr->value(), attr->value_size()),
+                    attr->name_size(), 
+                    attr->value_size()
+                ));
 
             return result;
         }
@@ -909,7 +915,7 @@ namespace rapidxml
             , m_last_attribute(nullptr)
             , m_next_sibling(nullptr)
             , m_prev_sibling(nullptr)
-            , m_allocator(nullptr)
+            , m_wpool(nullptr)
         {
         }
 
@@ -1321,14 +1327,14 @@ namespace rapidxml
             m_first_attribute = 0;
         }
 
-        memory_pool<Ch>* get_allocator()
+        void set_pool(memory_pool<Ch>* pool)
         {
-            return m_allocator != nullptr ? m_allocator : this->document();
+            m_wpool = pool;
         }
 
-        void set_allocator(memory_pool<Ch>* allocator)
+        memory_pool<Ch>* get_pool()
         {
-            this->m_allocator = allocator;
+            return m_wpool;
         }
 
     private:
@@ -1359,7 +1365,7 @@ namespace rapidxml
         xml_attribute<Ch> *m_last_attribute;    // Pointer to last attribute of node, or 0 if none; this value is only valid if m_first_attribute is non-zero
         xml_node<Ch> *m_prev_sibling;           // Pointer to previous sibling of node, or 0 if none; this value is only valid if m_parent is non-zero
         xml_node<Ch> *m_next_sibling;           // Pointer to next sibling of node, or 0 if none; this value is only valid if m_parent is non-zero
-        memory_pool<Ch>* m_allocator;
+        memory_pool<Ch>* m_wpool;
     };
 
     ///////////////////////////////////////////////////////////////////////////
@@ -1379,6 +1385,7 @@ namespace rapidxml
         {
             ok,
             expected_close_tag,
+            unrecognized_tag,
         };
         parse_result parse_result_ = parse_result::ok;
     public:
@@ -1387,6 +1394,7 @@ namespace rapidxml
         xml_document()
             : xml_node<Ch>(node_document)
         {
+            set_pool(this);
         }
 
 
@@ -1410,11 +1418,11 @@ namespace rapidxml
             this->remove_all_nodes();
             this->remove_all_attributes();
 
-            // Parse BOM, if any
-            parse_bom<Flags>(text);
-
             auto endch = text[length - 1];
             text[length - 1] = 0;
+
+            // Parse BOM, if any
+            parse_bom<Flags>(text);
 
             // Parse children
         _L_Loop:
@@ -1438,13 +1446,13 @@ namespace rapidxml
             // check parse result.
             if (parse_result_ == parse_result::ok) {
                 if (endch == '<') {
+                    parse_result_ = parse_result::unrecognized_tag;
                     RAPIDXML_PARSE_ERROR("unrecognized tag", text);
                 }
             }
-            else { // parse_result_ == parse_result::expected_close_tag
-                if (endch != '>') {
-                    RAPIDXML_PARSE_ERROR("expected >", text);
-                }
+            else { // parse_result_: parse_result::expected_close_tag
+                if (endch == '>')  parse_result_ = parse_result::ok;
+                else RAPIDXML_PARSE_ERROR("expected >", text);
             }
         }
 

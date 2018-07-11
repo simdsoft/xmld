@@ -58,11 +58,12 @@ namespace rapidxml
             {
                 if (*begin == noexpand)
                 {
-                    *out++ = *begin;    // No expansion, copy character
+                    *out++ = *begin;   // No expansion, copy character
                 }
                 else
                 {
-                    switch (*begin)
+                    unsigned int ch = *begin;
+                    switch (ch)
                     {
                     case Ch('<'):
                         *out++ = Ch('&'); *out++ = Ch('l'); *out++ = Ch('t'); *out++ = Ch(';');
@@ -80,7 +81,12 @@ namespace rapidxml
                         *out++ = Ch('&'); *out++ = Ch('a'); *out++ = Ch('m'); *out++ = Ch('p'); *out++ = Ch(';');
                         break;
                     default:
-                        *out++ = *begin;    // No expansion, copy character
+                        if (ch >= 32) {
+                            *out++ = ch;  // No expansion, copy character
+                        }
+                        else {
+                            *out++ = Ch('&'); *out++ = Ch('#'); *out++ = static_cast<Ch>((ch / 10) + '0'); *out++ = static_cast<Ch>((ch % 10) + '0'); *out++ = Ch(';');
+                        }
                     }
                 }
                 ++begin;    // Step to next character

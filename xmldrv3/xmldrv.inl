@@ -67,7 +67,7 @@ void element::cforeach_breakif(const _Handler& handler) const
 }
 
 template<typename _Handler> inline
-void element::cforeach(const vstring& name, const _Handler& handler) const
+void element::cforeach(const string& name, const _Handler& handler) const
 {
     auto ptr = *this;
     __xml4wts_algo_cond(ptr, 
@@ -79,7 +79,7 @@ void element::cforeach(const vstring& name, const _Handler& handler) const
 }
 
 template<typename _Handler> inline
-void element::cforeach_breakif(const vstring& name, const _Handler& handler) const
+void element::cforeach_breakif(const string& name, const _Handler& handler) const
 {
     auto ptr = *this;
     __xml4wts_algo_cond(ptr,
@@ -104,7 +104,7 @@ template<typename _Handler> inline
 void   element::pforeach_breakif(const _Handler& handler) const
 {
     auto attrib = first_attribute();
-    while (attrib != nullptr) {
+    while (attrib.is_good()) {
         if (handler(attrib.get_name(), attrib.get_value()))
             break;
         attrib = attrib.next();
