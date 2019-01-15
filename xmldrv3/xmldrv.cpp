@@ -636,7 +636,7 @@ void element::remove_children(const xmld::string& name)
         for (decltype(first)* curr = &first; *curr;)
         {
             decltype(first) entry = *curr;
-            if (0 == memcmp(entry->name(), name.c_str(), (_STD min)(entry->name_size(), name.size())))
+            if (entry->name_size() == name.size() && 0 == memcmp(entry->name(), name.c_str(), name.size()))
             {
                 *curr = entry->next_sibling();
                 _detail(_Mynode)->remove_node(entry);
@@ -1730,21 +1730,6 @@ void element::remove_children(const char* name)
 {
     if (is_good())
     {
-        /*auto first = _detail(_Mynode)->first_node();
-        decltype(first) next = nullptr;
-        for (decltype(first)* curr = &first; *curr;)
-        {
-        decltype(first) entry = *curr;
-        if (0 == memcmp(entry->name(), name, (_STD min)(entry->name_size(), strlen(name))))
-        {
-        *curr = entry->next_sibling();
-        _detail(_Mynode)->remove_node(entry);
-        }
-        else {
-        next = entry->next_sibling();
-        curr = &next;
-        }
-        }*/
     }
 }
 
