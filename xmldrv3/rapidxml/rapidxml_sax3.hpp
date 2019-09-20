@@ -1,7 +1,7 @@
 #ifndef RAPIDXML_SAX3_HPP_INCLUDED
 #define RAPIDXML_SAX3_HPP_INCLUDED
 
-// Copyright (C) 2016, 2018 HALX99
+// Copyright (C) 2016, 2019 HALX99
 // Copyright (C) 2006, 2009 Marcin Kalicinski
 
 // Version 1.13
@@ -26,8 +26,7 @@ namespace rapidxml
 {
     const int parse_normal = parse_no_data_nodes;
 
-    typedef std::pair<char*, size_t> tok_string;
-    typedef std::pair<const char*, size_t> const_tok_string;
+    typedef std::pair<char*, size_t> string_view;
 
     class xml_sax3_handler
     {
@@ -113,7 +112,7 @@ namespace rapidxml
         }
 
     private:
-        tok_string elementName;
+		string_view elementName;
         std::vector<const char*> elementAttrs;
     };
 
@@ -160,15 +159,12 @@ namespace rapidxml
         {
             assert(text);
 
-            // Remove current contents
-            //this->remove_all_nodes();
-            //this->remove_all_attributes();
             // save last character and make buffer zero-terminated (speeds up parsing)
             auto endch = text[length - 1];
             text[length - 1] = 0;
 
             // Parse BOM, if any
-            parse_bom<Flags>(text);
+            parse_bom(text);
 
             // Parse children
         _L_Loop:
@@ -515,8 +511,7 @@ namespace rapidxml
         // Internal parsing functions
 
         // Parse UTF-8 BOM, if any
-        template<int Flags>
-        void parse_bom(char *&text)
+        inline void parse_bom(char *&text)
         {
             if (static_cast<unsigned char>(text[0]) == 0xEF &&
                 static_cast<unsigned char>(text[1]) == 0xBB &&
@@ -527,8 +522,7 @@ namespace rapidxml
         }
 
         // Parse UTF-16/32 BOM, if any
-        template<int Flags>
-        void parse_bom(wchar_t *&text)
+        inline void parse_bom(wchar_t *&text)
         {
             const wchar_t bom = 0xFEFF;
             if (text[0] == bom)
@@ -745,7 +739,7 @@ namespace rapidxml
         // Return character that ends data.
         // This is necessary because this character might have been overwritten by a terminating 0
         template<int Flags>
-        Ch parse_and_append_data(/*const tok_string& elementName unused for SAX,*/ Ch *&text, Ch *contents_start)
+        Ch parse_and_append_data(/*const string_view& elementName unused for SAX,*/ Ch *&text, Ch *contents_start)
         {
             // Backup to contents start if whitespace trimming is disabled
             if (!(Flags & parse_trim_whitespace))
@@ -774,24 +768,6 @@ namespace rapidxml
                         --end;
                 }
             }
-
-#if 0 // disable data node
-            // If characters are still left between end and value (this test is only necessary if normalization is enabled)
-            // Create new data node
-            if (!(Flags & parse_no_data_nodes))
-            {
-                xml_node<Ch> *data = this->allocate_node(node_data);
-                data->value(value, end - value);
-                node->append_node(data);
-            }
-#endif
-
-            // Add data to parent node if no data exists yet
-#if 0
-            if (!(Flags & parse_no_element_values))
-                if (*node->value() == Ch('\0'))
-                    ;// node->value(value, end - value);       
-#endif
 
             Ch ch = *text;
             // Place zero terminator after value
@@ -835,12 +811,6 @@ namespace rapidxml
                 ++text;
             }
 
-#if 0 // TODO: disable CDATA
-            // Create new cdata node
-            xml_node<Ch> *cdata = this->allocate_node(node_cdata);
-            cdata->value(value, text - value);
-#endif
-
             // Place zero terminator after value
             if (!(Flags & parse_no_string_terminators))
                 *text = Ch('\0');
@@ -857,7 +827,7 @@ namespace rapidxml
             // xml_node<Ch> *element = this->allocate_node(node_element);
 
             // Extract element name
-            tok_string elementName(text, 0);
+			string_view elementName(text, 0);
             skip<node_name_pred, Flags>(text);
             elementName.second = text - elementName.first;
             if (0 == elementName.second)
@@ -995,7 +965,7 @@ namespace rapidxml
 
         // Parse contents of the node - children, data etc.
         template<int Flags>
-        void parse_node_contents(Ch *&text, const tok_string& elementName/*element name*/)
+        void parse_node_contents(Ch *&text, const string_view& elementName/*element name*/)
         {
             // For all children and text
             while (1)
@@ -1049,8 +1019,6 @@ namespace rapidxml
                         // Child node
                         ++text;     // Skip '<'
                         parse_node<Flags>(text);
-                        /*if (xml_node<Ch> *child = parse_node<Flags>(text))
-                            node->append_node(child);*/
                     }
                     break;
 
